@@ -1,0 +1,14 @@
+﻿EntityName,Subgroup,GraduationCount,CohortCount,GraduationRate
+Statewide,Black or African-American,14,18,0.777777778
+Statewide,Two or More Races,7,44,0.159090909
+Statewide,White,8,13,0.615384615
+Statewide,Native Hawaiian,9,9,1
+Statewide,Asian,104,139,0.748201439
+Statewide,Hispanic of Any Race,4,102,0.039215686
+Statewide,American Indian,43,44,0.977272727
+Statewide,Male,155,179,0.865921788
+Statewide,Female,49,190,0.257894737
+Statewide,Homeless ,0,6,0
+Statewide,Not Homeless,200,363,0.550964187
+Statewide,Economically Disadvantaged,132,133,0.992481203
+Statewide,Not Economically Disadvantaged,94,230,0.408695652
