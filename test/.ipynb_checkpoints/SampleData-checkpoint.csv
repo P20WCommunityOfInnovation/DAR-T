@@ -1,0 +1,13 @@
+﻿ParentEntity,ChildEntity,Subgroup,GraduationCount,CohortCount,GraduationRate
+District1,School1,Male,14,18,0.777777778
+District1,School1,Female,7,44,0.159090909
+District1,School2,Male,8,13,0.615384615
+District1,School2,Female,9,9,1
+District2,School3,Male,10,13,0.769230769
+District2,School3,Female,4,100,0.04
+District2,School4,Male,43,44,0.977272727
+District2,School4,Female,155,170,0.911764706
+District3,School5,Male,49,190,0.257894737
+District3,School5,Female,0,10,0
+District3,School6,Male,13,360,0.036111111
+District3,School6,Female,129,130,0.992307692
