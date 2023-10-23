@@ -1,0 +1,37 @@
+﻿ParentEntity,ChildEntity,Subgroup1,Subgroup2,GraduationCount,CohortCount,GraduationRate
+District1,School1,English Language Learner,Male,14,18,0.777777778
+District1,School1,Not English Language Learner,Male,20,22,0.909090909
+District1,School1,English Language Learner,Female,13,44,0.295454545
+District1,School1,Not English Language Learner,Female,7,45,0.155555556
+District1,School1,English Language Learner,Non-binary,17,40,0.425
+District1,School1,Not English Language Learner,Non-binary,22,33,0.666666667
+District1,School2,English Language Learner,Male,9,20,0.45
+District1,School2,Not English Language Learner,Male,5,13,0.384615385
+District1,School2,English Language Learner,Female,12,20,0.6
+District1,School2,Not English Language Learner,Female,4,9,0.444444444
+District1,School2,English Language Learner,Non-binary,34,45,0.755555556
+District1,School2,Not English Language Learner,Non-binary,18,25,0.72
+District2,School3,English Language Learner,Male,8,13,0.615384615
+District2,School3,Not English Language Learner,Male,11,13,0.846153846
+District2,School3,English Language Learner,Female,4,100,0.04
+District2,School3,Not English Language Learner,Female,9,200,0.045
+District2,School3,English Language Learner,Non-binary,7,91,0.076923077
+District2,School3,Not English Language Learner,Non-binary,8,92,0.086956522
+District2,School4,English Language Learner,Male,43,44,0.977272727
+District2,School4,Not English Language Learner,Male,3,10,0.3
+District2,School4,English Language Learner,Female,80,160,0.5
+District2,School4,Not English Language Learner,Female,20,30,0.666666667
+District2,School4,English Language Learner,Non-binary,10,32,0.3125
+District2,School4,Not English Language Learner,Non-binary,31,44,0.704545455
+District3,School5,English Language Learner,Male,7,70,0.1
+District3,School5,Not English Language Learner,Male,0,80,0
+District3,School5,English Language Learner,Female,2,10,0.2
+District3,School5,Not English Language Learner,Female,0,9,0
+District3,School5,English Language Learner,Non-binary,6,29,0.206896552
+District3,School5,Not English Language Learner,Non-binary,9,20,0.45
+District3,School6,English Language Learner,Male,6,230,0.026086957
+District3,School6,Not English Language Learner,Male,11,100,0.11
+District3,School6,English Language Learner,Female,12,28,0.428571429
+District3,School6,Not English Language Learner,Female,24,130,0.184615385
+District3,School6,English Language Learner,Non-binary,16,70,0.228571429
+District3,School6,Not English Language Learner,Non-binary,19,28,0.678571429
