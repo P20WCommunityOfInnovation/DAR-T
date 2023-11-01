@@ -11,12 +11,12 @@ District1,School2,English Language Learner,Female,12,20,0.6
 District1,School2,Not English Language Learner,Female,4,9,0.444444444
 District1,School2,English Language Learner,Non-binary,34,45,0.755555556
 District1,School2,Not English Language Learner,Non-binary,18,25,0.72
-District2,School3,English Language Learner,Male,25,13,1.923076923
+District2,School3,English Language Learner,Male,8,13,0.615384615
 District2,School3,Not English Language Learner,Male,11,13,0.846153846
-District2,School3,English Language Learner,Female,14,100,0.14
-District2,School3,Not English Language Learner,Female,12,200,0.06
+District2,School3,English Language Learner,Female,4,100,0.04
+District2,School3,Not English Language Learner,Female,9,200,0.045
 District2,School3,English Language Learner,Non-binary,7,91,0.076923077
-District2,School3,Not English Language Learner,Non-binary,2,92,0.02173913
+District2,School3,Not English Language Learner,Non-binary,8,92,0.086956522
 District2,School4,English Language Learner,Male,43,44,0.977272727
 District2,School4,Not English Language Learner,Male,3,10,0.3
 District2,School4,English Language Learner,Female,80,160,0.5
