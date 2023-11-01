@@ -12,7 +12,6 @@ pip install pandas
 Import the class and initialize it with a Pandas DataFrame and optionally a list of sensitive columns.
 
 ```python
-Copy code
 from DataAnonymizer import DataAnonymizer
 
 # Initialize with DataFrame and sensitive columns
