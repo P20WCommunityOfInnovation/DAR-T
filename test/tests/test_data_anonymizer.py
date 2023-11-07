@@ -23,7 +23,7 @@ class TestDataAnonymizer(unittest.TestCase):
         result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
         self.assertTrue('Redact' in result_df.columns)
 
-    def test_redact_threshold_reacts_at_least_two_rows_per_sensitive_column(self):
+    def test_redact_threshold_redacts_at_least_two_rows_per_sensitive_column(self):
         sensitive_columns = ['Subgroup1', 'Subgroup2']
         anonymizer = DataAnonymizer(self.df, sensitive_columns=sensitive_columns)
         result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
@@ -32,7 +32,7 @@ class TestDataAnonymizer(unittest.TestCase):
         for sensitive_column in sensitive_columns:
             self.assertTrue((redacted.groupby(sensitive_column)['Redact'].count() >= 2).all()) 
 
-    def test_redact_threshold_expected_output(self):
+    def test_redact_threshold_matches_expected_output(self):
         expected_data = {
             'Subgroup1': ['STEM', 'STEM', 'STEM', 'STEM', 'STEM', 'Business', 'Business', 'Business', 'Business', 'Business', 'Education', 'Education', 'Education', 'Education', 'Education', 'Health', 'Health', 'Health', 'Health', 'Health', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral'],
             'Subgroup2': ['Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate'],
@@ -44,9 +44,6 @@ class TestDataAnonymizer(unittest.TestCase):
 
         anonymizer = DataAnonymizer(self.df, sensitive_columns=['Subgroup1', 'Subgroup2'])
         result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
-
-        result_df.fillna('Not Redacted', inplace=True)
-        expected_df.fillna('Not Redacted', inplace=True)
 
         self.assertTrue(result_df.equals(expected_df))
        
