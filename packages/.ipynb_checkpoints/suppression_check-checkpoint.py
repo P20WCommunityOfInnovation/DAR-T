@@ -152,7 +152,7 @@ class DataAnonymizer:
         self.df.loc[~self.df['MinimumValue'].isnull(), 'RedactBinary'] = 1
         
         # Update the 'Redact' column with a specific message for rows where 'MinimumValue' is not null
-        self.df.loc[self.df['RedactBinary'] == 1, 'Redact'] = 'Count minimum threshold needed secondary suppression'
+        self.df.loc[~self.df['MinimumValue'].isnull(), 'Redact'] = 'Count minimum threshold needed secondary suppression'
         
         # Retain only the necessary columns in the final dataframe
         self.df = self.df[organization_columns + self.sensitive_columns + [frequency] + ['Redact', 'RedactBinary']]
@@ -160,24 +160,48 @@ class DataAnonymizer:
         # Return the updated dataframe
         return self.df
     
-    def one_redact_zero (self, frequency, organization_colummns):        
+    def one_redact_zero (self, frequency, organization_columns):        
         # Filtering the DataFrame based on School Year and SuppressionID        
         df_filtered = self.df[~self.df['Redact'].isnull()]    
         
         # Grouping by DimSeaID and counting StudentCount, then filtering groups with a single record  
-        df_grouped_count = df_filtered.groupby(organization_colummns).count().reset_index()  
+        df_grouped_count = df_filtered.groupby(organization_columns).count().reset_index()  
         
         df_grouped_count.rename(columns={frequency: "counts"}, inplace=True)
         
         df_filtered_grouped_count = df_grouped_count[df_grouped_count['counts'] == 1]
+
+        df_filtered_grouped_count = df_filtered_grouped_count[organization_columns]
         
-        df_filtered_grouped_count['Zero'] = 1          
+        df_filtered_grouped_count['Zero'] = 1    
         
         # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
-        self.df = self.df.merge(df_filtered_grouped_count, on=organization_colummns, how='left')                
+        self.df = self.df.merge(df_filtered_grouped_count, on=organization_columns, how='left') 
+
+        self.df.loc[(self.df[frequency] == 0) & self.df['Zero'] == 1, 'RedactBinary'] = 1
+        
         self.df.loc[(self.df[frequency] == 0) & self.df['Zero'] == 1, 'Redact'] = 'Redact zero needed for secondary suppression'
+
+        # Retain only the necessary columns in the final dataframe
+        self.df = self.df[organization_columns + self.sensitive_columns + [frequency] + ['Redact', 'RedactBinary']]
         
         return self.df
         
     def organization_group_redaction(self, frequency, organization_columns=None, minimum_threshold=10):
+        return self.df
+    # New method to call the specified functions
+    def apply_anonymization(self, frequency, organization_columns=None, minimum_threshold=10):
+        # Call less_than_threshold_not_zero
+        self.less_than_threshold_not_zero(frequency, minimum_threshold)
+
+        # Call one_count_redacted
+        self.one_count_redacted(frequency, organization_columns, minimum_threshold)
+
+        # Call sum_redact
+        self.sum_redact(frequency, organization_columns, minimum_threshold)
+
+        # Call one_redact_zero
+        self.one_redact_zero(frequency, organization_columns)
+
+        # Return the updated dataframe
         return self.df
