@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from src.data_anonymizer import DataAnonymizer
+from packages.suppression_check import DataAnonymizer
 import numpy as np
 
 class TestDataAnonymizer(unittest.TestCase):
@@ -46,6 +46,10 @@ class TestDataAnonymizer(unittest.TestCase):
         result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
 
         self.assertTrue(result_df.equals(expected_df))
+
+
+if __name__ == '__main__':
+    unittest.main()
        
         
 
