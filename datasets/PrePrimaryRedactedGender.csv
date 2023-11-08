@@ -1,0 +1,13 @@
+﻿Organization,Subgroup,Counts,RedactBinary,Redact
+School1,Male,14,,
+School1,Female,13,,
+School1,Non-binary,17,,
+School2,Male,9,1,Less Than 10 and not zero
+School2,Female,12,,
+School2,Non-binary,34,,
+School3,Male,4,1,Less Than 10 and not zero
+School3,Female,5,1,Less Than 10 and not zero
+School3,Non-binary,12,,
+School4,Male,0,,
+School4,Female,0,,
+School4,Non-binary,6,1,Less Than 10 and not zero
