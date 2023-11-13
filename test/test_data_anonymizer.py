@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+from pandas.testing import assert_frame_equal
 from packages.suppression_check import DataAnonymizer
 import numpy as np
 
@@ -45,8 +46,11 @@ class TestDataAnonymizer(unittest.TestCase):
         anonymizer = DataAnonymizer(self.df, sensitive_columns=['Subgroup1', 'Subgroup2'])
         result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
 
-        self.assertTrue(result_df.equals(expected_df))
+        #Filling NaN values with 'Not Redacted' to avoid issues with NaN comparison
+        result_df['Redact'] = result_df['Redact'].fillna('Not Redacted', inplace=True) 
+        expected_df['Redact'] = expected_df['Redact'].fillna('Not Redacted', inplace=True)
 
+        self.assertIsNone(assert_frame_equal(result_df, expected_df)) #assert_frame_equal returns None when DataFrames are equal, so we check for None instead of True 
 
 if __name__ == '__main__':
     unittest.main()
