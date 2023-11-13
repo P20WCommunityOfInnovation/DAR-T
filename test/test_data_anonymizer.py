@@ -2,7 +2,6 @@ import unittest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 from packages.suppression_check import DataAnonymizer
-import numpy as np
 
 class TestDataAnonymizer(unittest.TestCase):
     
