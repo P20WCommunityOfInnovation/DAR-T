@@ -1,9 +1,7 @@
 import unittest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import sys
-sys.path.append('..\\packages')
-from suppression_check import DataAnonymizer
+from packages.suppression_check import DataAnonymizer
 
 class TestDataAnonymizer(unittest.TestCase):
     
