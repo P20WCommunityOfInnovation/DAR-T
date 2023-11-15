@@ -45,27 +45,28 @@ class DataAnonymizer:
 
         self.df_log.loc[:, 'Redact'] = 'Not Redacted'
 
-        # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
-        df_minimum_threshold = self.df_log[self.df_log[self.frequency] >= minimum_threshold]
-        
-        # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
-        df_grouped_min = df_minimum_threshold.groupby(self.organization_columns)[self.frequency].min().reset_index()
-        
-        df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
-        
-        # Merge the filtered and grouped dataframes based on 'organization_columns'
-        self.df_log = self.df_log.merge(df_grouped_min, on=self.organization_columns, how='inner')
+        if organization_columns is not None:
+            # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
+            df_minimum_threshold = self.df_log[self.df_log[self.frequency] >= self.minimum_threshold]
+            
+            # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
+            df_grouped_min = df_minimum_threshold.groupby(self.organization_columns)[self.frequency].min().reset_index()
+            
+            df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
+            
+            # Merge the filtered and grouped dataframes based on 'organization_columns'
+            self.df_log = self.df_log.merge(df_grouped_min, on=self.organization_columns, how='inner')
         
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
         # has values less than 'minimum_threshold' and not equal to zero
-        mask = (self.df_log[self.frequency] < minimum_threshold) & (self.df_log[self.frequency] != 0)
+        mask = (self.df_log[self.frequency] < self.minimum_threshold) & (self.df_log[self.frequency] != 0)
 
         self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update a new column named 'Redact' with a message for the rows that meet the condition specified by the mask
-        self.df_log.loc[mask, 'Redact'] = f'Less Than {minimum_threshold} and not zero'
+        self.df_log.loc[mask, 'Redact'] = f'Less Than {self.minimum_threshold} and not zero'
         
         # Return the updated dataframe
         return self.df_log
@@ -93,7 +94,7 @@ class DataAnonymizer:
     # Method to redact values in the dataframe that are the sum of minimum threshold 
     def sum_redact(self):
         # Filter rows where the value in column specified by 'frequency' is less than 'minimum_threshold' but not zero
-        df_less_than = self.df_log[(self.df_log[self.frequency] < minimum_threshold) & (self.df_log[self.frequency] != 0)]
+        df_less_than = self.df_log[(self.df_log[self.frequency] < self.minimum_threshold) & (self.df_log[self.frequency] != 0)]
         
         # Group the filtered dataframe by 'organization_columns' and sum the values in 'frequency'
         df_grouped_less_than = df_less_than.groupby(self.organization_columns)[self.frequency].sum().reset_index()
@@ -101,13 +102,13 @@ class DataAnonymizer:
         df_grouped_less_than.rename(columns={self.frequency: "TotalCount"}, inplace=True)
         
         # Further filter the grouped dataframe to retain only rows where 'TotalCount' is less or equal to 'minimum_threshold'
-        df_filtered_group = df_grouped_less_than[df_grouped_less_than['TotalCount'] <= minimum_threshold]
+        df_filtered_group = df_grouped_less_than[df_grouped_less_than['TotalCount'] <= self.minimum_threshold]
         
         # Select only the 'organization_columns' from the filtered grouped dataframe
         df_filtered = df_filtered_group[self.organization_columns]
         
         # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
-        df_greater_than = self.df_log[self.df_log[self.frequency] >= minimum_threshold]
+        df_greater_than = self.df_log[self.df_log[self.frequency] >= self.minimum_threshold]
         
         # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
         df_grouped_greater_than = df_greater_than.groupby(self.organization_columns)[self.frequency].min().reset_index()
