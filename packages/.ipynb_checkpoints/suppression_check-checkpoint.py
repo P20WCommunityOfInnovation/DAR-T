@@ -39,7 +39,7 @@ class DataAnonymizer:
         
         self.df_log = df_log[self.organization_columns + self.sensitive_columns + [self.frequency]]
         
-        self.df_log = self.df_log.reset_index()
+        self.df_log = self.df_log.reset_index(drop=True)
         
         self.df_log.loc[:, 'RedactBinary'] = 0
 
@@ -51,7 +51,6 @@ class DataAnonymizer:
             
             # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
             df_grouped_min = df_minimum_threshold.groupby(self.organization_columns)[self.frequency].min().reset_index()
-            
             df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
             
             # Merge the filtered and grouped dataframes based on 'organization_columns'
@@ -99,38 +98,20 @@ class DataAnonymizer:
         # Group the filtered dataframe by 'organization_columns' and sum the values in 'frequency'
         df_grouped_less_than = df_less_than.groupby(self.organization_columns)[self.frequency].sum().reset_index()
         
-        df_grouped_less_than.rename(columns={self.frequency: "TotalCount"}, inplace=True)
-        
-        # Further filter the grouped dataframe to retain only rows where 'TotalCount' is less or equal to 'minimum_threshold'
-        df_filtered_group = df_grouped_less_than[df_grouped_less_than['TotalCount'] <= self.minimum_threshold]
-        
-        # Select only the 'organization_columns' from the filtered grouped dataframe
-        df_filtered = df_filtered_group[self.organization_columns]
-        
-        # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
-        df_greater_than = self.df_log[self.df_log[self.frequency] >= self.minimum_threshold]
-        
-        # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
-        df_grouped_greater_than = df_greater_than.groupby(self.organization_columns)[self.frequency].min().reset_index()
-        
-        df_grouped_greater_than.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
-        
-        # Merge the filtered and grouped dataframes based on 'organization_columns'
-        df_result = df_filtered.merge(df_grouped_greater_than, on=self.organization_columns, how='inner')
-        
-        # List columns for the dataframe with values greater than or equal to 'minimum_threshold'
-        greater_than_columns = self.organization_columns + ['MinimumValue']
-        
-        # List columns for merging the original dataframe with the result dataframe
-        merged_columns = self.organization_columns + [self.frequency]
+        df_grouped_less_than.rename(columns={self.frequency: "TotalSum"}, inplace=True)
+
+        df_grouped_less_than = df_grouped_less_than[self.organization_columns + ['TotalSum']]
         
         # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
-        self.df_log = self.df_log.merge(df_result, left_on=merged_columns, right_on=greater_than_columns, how='left')
+        self.df_log = self.df_log.merge(df_grouped_less_than, on=self.organization_columns, how='left')
+
+        # Mark rows with maximum overlapping as 'Suppressed'
+        mask = (self.df_log['TotalSum'] <= self.minimum_threshold) & (self.df_log['MinimumValue'] == self.df_log[self.frequency])
         
-        self.df_log.loc[~self.df_log['MinimumValue'].isnull(), 'RedactBinary'] = 1
+        self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update the 'Redact' column with a specific message for rows where 'MinimumValue' is not null
-        self.df_log.loc[~self.df_log['MinimumValue'].isnull(), 'Redact'] = 'Sum of minimum threshold redact needed secondary suppression'
+        self.df_log.loc[mask, 'Redact'] = 'Sum of minimum threshold redact needed secondary suppression'
         
         # Return the updated dataframe
         return self.df_log
@@ -144,23 +125,18 @@ class DataAnonymizer:
         df_grouped = df_redact_count.groupby(self.organization_columns).count().reset_index()
         
         df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
-        
-        # Further filter the grouped dataframe to retain only rows where 'counts' equals 1
-        df_filtered_grouped = df_grouped[df_grouped['counts'] == 1]
-        
-        # Select only the 'organization_columns' from the filtered grouped dataframe
-        df_filtered = df_filtered_grouped[self.organization_columns]
-        
-        # List columns for merging the original dataframe with the result dataframe
-        merged_columns = self.organization_columns + [self.frequency]
+
+        df_grouped = df_grouped[self.organization_columns + ['counts']]
         
         # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
-        self.df_log = self.df_log.merge(df_result, left_on=merged_columns, right_on=greater_than_columns, how='left')
+        self.df_log = self.df_log.merge(df_grouped, on=self.organization_columns, how='left')
 
-        self.df_log.loc[~self.df_log['MinimumValue'].isnull(), 'RedactBinary'] = 1
+        mask = (self.df_log['counts'] == 1) & (self.df_log['MinimumValue'] == self.df_log[self.frequency])
+        
+        self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update the 'Redact' column with a specific message for rows where 'MinimumValue' is not null
-        self.df_log.loc[~self.df_log['MinimumValue'].isnull(), 'Redact'] = 'Count minimum threshold needed secondary suppression'
+        self.df_log.loc[mask, 'Redact'] = 'Count minimum threshold needed secondary suppression'
         
         # Return the updated dataframe
         return self.df_log
