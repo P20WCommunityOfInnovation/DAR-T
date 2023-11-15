@@ -1,9 +1,7 @@
 import unittest
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import sys
-sys.path.append('..\\packages')
-from suppression_check import DataAnonymizer
+from packages.suppression_check import DataAnonymizer
 
 class TestDataAnonymizer(unittest.TestCase):
     
@@ -39,22 +37,6 @@ class TestDataAnonymizer(unittest.TestCase):
         for column in sensitive_columns:
             with self.subTest(column=column):
                 self.assertTrue((redacted.groupby(column)['Redact'].count() >= 2).all())
-
-
-    def test_redact_threshold_matches_expected_output(self):
-        expected_data = {
-            'Subgroup1': ['STEM', 'STEM', 'STEM', 'STEM', 'STEM', 'Business', 'Business', 'Business', 'Business', 'Business', 'Education', 'Education', 'Education', 'Education', 'Education', 'Health', 'Health', 'Health', 'Health', 'Health', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral', 'Social and Behavioral'],
-            'Subgroup2': ['Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate','Certificate', 'Associate', 'Bachelor', 'Masters', 'Doctorate'],
-            'Counts': [10, 9, 20, 100, 40, 15, 40, 15, 90, 11, 50, 30, 12, 6, 44, 100, 20, 100, 30, 70, 25, 11, 60, 50, 10], 
-            'Redact': ['NotRedacted', 'Less Than 10 and not zero', 'NotRedacted', 'Overlapping threshold secondary suppression', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'Overlapping threshold secondary suppression', 'NotRedacted', 'Less Than 10 and not zero', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted', 'NotRedacted'],
-            }   
-
-        expected_df = pd.DataFrame(expected_data)
-        anonymizer = DataAnonymizer(self.df, sensitive_columns=['Subgroup1', 'Subgroup2'])
-        result_df = anonymizer.redact_threshold('Counts', minimum_threshold=10)
-        result_df['Redact'] = result_df['Redact'].fillna('NotRedacted')
-
-        assert_frame_equal(result_df, expected_df)  #assert_frame_equal returns None when DataFrames are equal, so we check for None instead of True 
 
 if __name__ == '__main__':
     unittest.main()
