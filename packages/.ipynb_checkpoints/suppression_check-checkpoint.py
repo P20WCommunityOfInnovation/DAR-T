@@ -148,9 +148,9 @@ class DataAnonymizer:
         # Grouping by Organization and counting StudentCount, then filtering groups with a single record  
         df_grouped_count = df_filtered.groupby(self.organization_columns).count().reset_index()  
         
-        df_grouped_count.rename(columns={self.frequency: "counts"}, inplace=True)
-        
-        df_filtered_grouped_count = df_grouped_count[df_grouped_count['counts'] == 1]
+        df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
+
+        df_filtered_grouped_count = df_grouped_count[df_grouped_count['ZeroSuppressedCounts'] == 1]
 
         df_filtered_grouped_count = df_filtered_grouped_count[self.organization_columns]
         
@@ -159,9 +159,9 @@ class DataAnonymizer:
         # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
         self.df_log = self.df_log.merge(df_filtered_grouped_count, on=self.organization_columns, how='left') 
 
-        self.df_log.loc[(self.df[self.frequency] == 0) & self.df_log['Zero'] == 1, 'RedactBinary'] = 1
+        self.df_log.loc[(self.df[self.frequency] == 0) & (self.df_log['Zero'] == 1), 'RedactBinary'] = 1
         
-        self.df_log.loc[(self.df[self.frequency] == 0) & self.df_log['Zero'] == 1, 'Redact'] = 'Redact zero needed for secondary suppression'
+        self.df_log.loc[(self.df[self.frequency] == 0) & (self.df_log['Zero'] == 1), 'Redact'] = 'Redact zero needed for secondary suppression'
         
         return self.df_log
         
