@@ -182,4 +182,4 @@ class DataAnonymizer:
         self.one_redact_zero()
 
         # Return the updated dataframe
-        return self.df
+        return self.df_log
