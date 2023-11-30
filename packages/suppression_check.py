@@ -54,7 +54,11 @@ class DataAnonymizer:
             df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
             
             # Merge the filtered and grouped dataframes based on 'organization_columns'
-            self.df_log = self.df_log.merge(df_grouped_min, on=self.organization_columns, how='inner')
+            self.df_log = self.df_log.merge(df_grouped_min, on=organization_columns, how='left')
+
+            # drop NA rows based on merge
+            self.df_log.dropna(axis= 0, how = "any", subset= self.organization_columns + self.sensitive_columns, inplace=True)
+            self.df_log['MinimumValue'] = self.df_log['MinimumValue'].fillna(0)
         
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
