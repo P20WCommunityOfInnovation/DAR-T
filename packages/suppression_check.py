@@ -42,7 +42,14 @@ class DataAnonymizer:
 
         self.minimum_threshold = minimum_threshold
         
-        df_log = self.df[self.organization_columns + self.sensitive_columns + [self.frequency] + self.redact_column]
+        df_log = self.df[self.organization_columns + self.sensitive_columns + [self.frequency]]
+
+        if redact_column is None:
+            df_log[self.redact_column[0]] = 0
+        else:
+            df_log[self.redact_column] = self.df[self.redact_column]
+
+        print(df_log.head())
         
         for organization_column in self.organization_columns:
             for sensitive_column in self.sensitive_columns:
