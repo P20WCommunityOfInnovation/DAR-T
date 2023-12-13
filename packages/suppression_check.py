@@ -11,31 +11,41 @@ class DataAnonymizer:
 
     def create_log(self):
         dataframes = []
+        self.df['Filler'] = 0
         for organization_column in self.organization_columns:
             for sensitive_column in self.sensitive_columns:
                 df_grouped = self.df.groupby([organization_column, sensitive_column])[self.frequency].sum().reset_index()
+                df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+                df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
+                df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+                df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
                 dataframes.append(df_grouped)
         for organization_column in self.organization_columns:
-            df_grouped = self.df.groupby([organization_column])[self.frequency].sum().reset_index()
+            df_grouped = self.df.groupby([organization_column, 'Filler'])[self.frequency].sum().reset_index()
+            df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+            df_grouped_min = df_not_redacted.groupby('Filler')[self.frequency].min().reset_index()
+            df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+            df_grouped = df_grouped.merge(df_grouped_min, on=['Filler'], how='left')
             dataframes.append(df_grouped)
         for sensitive_column in self.sensitive_columns:
-            df_grouped = self.df.groupby([sensitive_column])[self.frequency].sum().reset_index()
+            df_grouped = self.df.groupby([sensitive_column, 'Filler'])[self.frequency].sum().reset_index()
+            df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+            df_grouped_min = df_not_redacted.groupby(['Filler'])[self.frequency].min().reset_index()
+            df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+            df_grouped = df_grouped.merge(df_grouped_min, on=['Filler'], how='left')
             dataframes.append(df_grouped)
-
         df_log = pd.concat(dataframes + [self.df[self.organization_columns + self.sensitive_columns + [self.frequency]]], ignore_index=True)
         df_log = df_log.drop_duplicates().reset_index(drop=True)
         df_log['RedactBinary'] = 0
         df_log['Redact'] = 'Not Redacted'
         
         if self.organization_columns:
-            grouped_min = df_log.groupby(self.organization_columns)[self.frequency].min().reset_index()
-            grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-            df_log = df_log.merge(grouped_min, on=self.organization_columns, how='left')
-            df_log['MinimumValue'] = df_log['MinimumValue'].fillna(0)
-
+            df_not_redacted = df_log[df_log[self.frequency] > self.minimum_threshold]
+            df_grouped_min = df_not_redacted.groupby(self.organization_columns, dropna=False)[self.frequency].min().reset_index()
+            df_grouped_min.rename(columns={self.frequency: "MinimumValueTotal"}, inplace=True)
+            df_log = df_log.merge(df_grouped_min, on=self.organization_columns, how='left')
+            df_log.loc[df_log['MinimumValue'].isnull(), 'MinimumValue'] = df_log['MinimumValueTotal']
         self.df_log = df_log.copy()
-
-        return df_log
         
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
@@ -63,7 +73,7 @@ class DataAnonymizer:
             list_sensitive = self.df_log[self.df_log['RedactBinary'] == 1][sensitive_column].unique()
             self.df_log.loc[self.df_log[sensitive_column].isin(list_sensitive), 'Overlapping'] += 1
 
-        self.df_log.groupby()['Overlapping'].min().reset_index()
+        self.df_log.groupby(dropna=False)['Overlapping'].min().reset_index()
         
         # Mark rows with maximum overlapping as 'Suppressed'
         mask = (self.df_log['Overlapping'] == self.df_log['Overlapping'].max()) & (self.df_log['RedactBinary'] == 0)
@@ -81,7 +91,7 @@ class DataAnonymizer:
         df_less_than = self.df_log[(self.df_log[self.frequency] < self.minimum_threshold) & (self.df_log[self.frequency] != 0)]
         
         # Group the filtered dataframe by 'organization_columns' and sum the values in 'frequency'
-        df_grouped_less_than = df_less_than.groupby(self.organization_columns)[self.frequency].sum().reset_index()
+        df_grouped_less_than = df_less_than.groupby(self.organization_columns, dropna=False)[self.frequency].sum().reset_index()
         
         df_grouped_less_than.rename(columns={self.frequency: "TotalSum"}, inplace=True)
 
@@ -107,7 +117,7 @@ class DataAnonymizer:
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
         
         # Group the filtered dataframe by 'organization_columns' and count the size of each group
-        df_grouped = df_redact_count.groupby(self.organization_columns).count().reset_index()
+        df_grouped = df_redact_count.groupby(self.organization_columns, dropna=False).count().reset_index()
         
         df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
 
@@ -131,7 +141,7 @@ class DataAnonymizer:
         df_filtered = self.df_log[self.df_log['RedactBinary'] == 1]    
         
         # Grouping by Organization and counting StudentCount, then filtering groups with a single record  
-        df_grouped_count = df_filtered.groupby(self.organization_columns).count().reset_index()  
+        df_grouped_count = df_filtered.groupby(self.organization_columns, dropna=False).count().reset_index()  
         
         df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
 
