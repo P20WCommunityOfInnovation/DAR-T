@@ -20,6 +20,7 @@ class TestDataAnonymizer(unittest.TestCase):
         Test if 'Redact' column is added to the DataFrame.
         """
         anonymizer = DataAnonymizer(self.df, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='Counts')
+        anonymizer.create_log()
         for function in [anonymizer.less_than_threshold_not_zero, anonymizer.redact_threshold]:
             with self.subTest(function=function):
                 result_df = function()
@@ -31,6 +32,7 @@ class TestDataAnonymizer(unittest.TestCase):
         """
         sensitive_columns = ['Subgroup1', 'Subgroup2']
         anonymizer = DataAnonymizer(self.df, sensitive_columns=sensitive_columns, frequency='Counts')
+        anonymizer.create_log()
         result_df = anonymizer.redact_threshold()
         redacted = result_df[result_df['Redact'].notnull()]
 
