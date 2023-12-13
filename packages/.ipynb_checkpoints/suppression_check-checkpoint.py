@@ -66,7 +66,8 @@ class DataAnonymizer:
         self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update a new column named 'Redact' with a message for the rows that meet the condition specified by the mask
-        self.df_log.loc[mask, 'Redact'] = f'Less Than {self.minimum_threshold} and not zero'
+        self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
+        #self.df_log.loc[mask, 'Redact'] = f'Less Than {self.minimum_threshold} and not zero'
         
         # Return the updated dataframe
         return self.df_log
