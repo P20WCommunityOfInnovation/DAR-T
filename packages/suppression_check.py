@@ -135,7 +135,7 @@ class DataAnonymizer:
         for sensitive_column in self.sensitive_columns:
             list_sensitive = self.df_log[self.df_log['RedactBinary'] == 1][sensitive_column].unique()
                     
-self.df_log.loc[self.df_log[sensitive_column].isin(list_sensitive), 'Overlapping'] += 1
+        self.df_log.loc[self.df_log[sensitive_column].isin(list_sensitive), 'Overlapping'] += 1
 
         self.df_log.groupby(dropna=False)['Overlapping'].min().reset_index()
         
