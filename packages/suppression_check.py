@@ -9,7 +9,7 @@ class DataAnonymizer:
         self.sensitive_columns = list(sensitive_columns) if isinstance(sensitive_columns, (list, tuple)) else [sensitive_columns]
         self.frequency = frequency
         self.minimum_threshold = minimum_threshold
-
+        
 
     def create_log(self):
         df_dataframes = pd.DataFrame()
@@ -57,28 +57,6 @@ class DataAnonymizer:
             df_log.loc[df_log['MinimumValue'].isnull(), 'MinimumValue'] = df_log['MinimumValueTotal']
             df_log.drop('MinimumValueTotal', axis=1, inplace=True)
         self.df_log = df_log.copy()
-
-        # Check the type of sensitive_columns and store it as an instance variable
-        if sensitive_columns is None:
-            print('Sensitive Column is empty')  # Print a message if sensitive_columns is None
-            self.sensitive_columns = []  # Initialize an empty list
-        elif isinstance(sensitive_columns, str):
-            self.sensitive_columns = [sensitive_columns]  # Convert a single string to a list with one item
-        else:
-            self.sensitive_columns = sensitive_columns  # Store the provided list
-
-        # Check the type of organization_columns and store it as an instance variable
-        if organization_columns is None:
-            print('Organization Column is empty')  # Print a message if organization_columns is None
-            self.organization_columns = []  # Initialize an empty list
-        elif isinstance(organization_columns, str):
-            self.organization_columns = [organization_columns]  # Convert a single string to a list with one item
-        else:
-            self.organization_columns = organization_columns  # Store the provided list
-            
-        self.frequency = frequency
-
-        self.minimum_threshold = minimum_threshold
         
         df_log = self.df[self.organization_columns + self.sensitive_columns + [self.frequency]]
         for organization_column in self.organization_columns:
@@ -96,10 +74,10 @@ class DataAnonymizer:
 
         self.df_log.loc[:, 'Redact'] = 'Not Redacted'
 
-        if organization_columns is not None:
+        if len(self.organization_columns) != 0:
             # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
             df_minimum_threshold = self.df_log[self.df_log[self.frequency] >= self.minimum_threshold]
-            
+            display(df_minimum_threshold)
             # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
             df_grouped_min = df_minimum_threshold.groupby(self.organization_columns)[self.frequency].min().reset_index()
             df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
@@ -110,6 +88,8 @@ class DataAnonymizer:
             # drop NA rows based on merge
             self.df_log.dropna(axis= 0, how = "any", subset= self.organization_columns + self.sensitive_columns, inplace=True)
             self.df_log['MinimumValue'] = self.df_log['MinimumValue'].fillna(0)
+
+        return self.df_log
         
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
