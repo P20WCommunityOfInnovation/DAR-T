@@ -1,12 +1,18 @@
 import pandas as pd
 
 class DataAnonymizer:
-    def __init__(self, df, organization_columns=(), sensitive_columns=(), frequency=None, minimum_threshold=10):
+    # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns
+    def __init__(self, df, organization_columns=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
         df['Original'] = 1
         # Create a copy of the input dataframe and store it as an instance variable
         self.df = df.copy()
         self.organization_columns = list(organization_columns) if isinstance(organization_columns, (list, tuple)) else [organization_columns]
         self.sensitive_columns = list(sensitive_columns) if isinstance(sensitive_columns, (list, tuple)) else [sensitive_columns]
+
+        # Rename the user supplied redact column to "UserRedact"
+        self.df.rename({self.redact_column[0]: "UserRedact"}, axis = 1, inplace=True)
+        self.redact_column = ['UserRedact']
+        
         self.frequency = frequency
         self.minimum_threshold = minimum_threshold
         
@@ -59,6 +65,14 @@ class DataAnonymizer:
         self.df_log = df_log.copy()
         
         df_log = self.df[self.organization_columns + self.sensitive_columns + [self.frequency]]
+
+        if redact_column is None:
+            df_log[self.redact_column[0]] = 0
+        else:
+            df_log[self.redact_column] = self.df[self.redact_column]
+
+        print(df_log.head())
+        
         for organization_column in self.organization_columns:
             for sensitive_column in self.sensitive_columns:
                 df_temp = self.df.groupby([organization_column] + [sensitive_column])[self.frequency].sum().reset_index()
@@ -66,7 +80,7 @@ class DataAnonymizer:
 
         df_log.drop_duplicates(inplace=True)
         
-        self.df_log = df_log[self.organization_columns + self.sensitive_columns + [self.frequency]]
+        self.df_log = df_log[self.organization_columns + self.sensitive_columns + [self.frequency] + self.redact_column]
         
         self.df_log = self.df_log.reset_index(drop=True)
         
@@ -225,9 +239,18 @@ class DataAnonymizer:
                         df_original.loc[df_original['RedactTotals'] == 1, 'RedactBinary'] = 1
         return df_original
     # New method to call the specified functions
+
+    def redact_user_requested_records(self):
+        self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
+
+        self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
+        return self.df_log
     def apply_anonymization(self):
         # Call less_than_threshold_not_zero
         self.less_than_threshold_not_zero()
+
+        # Call redact_user_requested_records
+        self.redact_user_requested_records()
 
         # Call one_count_redacted
         self.one_count_redacted()

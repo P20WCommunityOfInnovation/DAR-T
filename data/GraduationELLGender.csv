@@ -1,4 +1,4 @@
-﻿ParentEntity,ChildEntity,Subgroup1,Subgroup2,GraduationCount,CohortCount,GraduationRate
+ParentEntity,ChildEntity,Subgroup1,Subgroup2,GraduationCount,CohortCount,GraduationRate
 District1,School1,English Language Learner,Male,14,18,0.777777778
 District1,School1,Not English Language Learner,Male,20,22,0.909090909
 District1,School1,English Language Learner,Female,13,44,0.295454545
