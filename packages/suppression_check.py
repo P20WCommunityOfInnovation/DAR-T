@@ -94,19 +94,6 @@ class DataAnonymizer:
 
         self.df_log.loc[:, 'Redact'] = 'Not Redacted'
 
-        if self.organization_columns[0] is not None:
-            # Filter rows where the value in the column specified by 'frequency' is greater than or equal to 'minimum_threshold'
-            df_minimum_threshold = self.df_log[self.df_log[self.frequency] >= self.minimum_threshold]
-            # Group the filtered dataframe by 'organization_columns' and get the minimum value in the 'frequency' column
-            df_grouped_min = df_minimum_threshold.groupby(self.organization_columns)[self.frequency].min().reset_index()
-            df_grouped_min.rename(columns = {self.frequency: "MinimumValue"}, inplace=True)
-            
-            # Merge the filtered and grouped dataframes based on 'organization_columns'
-            self.df_log = self.df_log.merge(df_grouped_min, on=organization_columns, how='left')
-
-            # drop NA rows based on merge
-            self.df_log.dropna(axis= 0, how = "any", subset= self.organization_columns + self.sensitive_columns, inplace=True)
-            self.df_log['MinimumValue'] = self.df_log['MinimumValue'].fillna(0)
 
         return self.df_log
 
@@ -256,6 +243,7 @@ class DataAnonymizer:
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
         return self.df_log
     def apply_anonymization(self):
+        self.create_log()
         # Call less_than_threshold_not_zero
         self.less_than_threshold_not_zero()
 
