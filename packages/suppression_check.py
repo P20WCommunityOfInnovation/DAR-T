@@ -222,20 +222,21 @@ class DataAnonymizer:
     def cross_suppression(self):
         df_core = self.df_log[~self.df_log[child_organization].isnull() & ~self.df_log[parent_organization].isnull()]
         df_parent_redact = self.df_log[self.df_log[child_organization].isnull()]
-        redact_name = 'RedactParentBinary'
-        df_parent_redact.rename(columns = {'RedactBinary':redact_name}, inplace=True)
-        df_parent_redact = df_zero_parent_redact[[parent_organization] + sensitive_list + [redact_name]]
+        redact_parent_name = 'RedactParentBinary'
+        df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
+        df_parent_redact = df_zero_parent_redact[[parent_organization] + sensitive_list + [redact_parent_name]]
         df_parent_redact.drop_duplicates(inplace=True)
         self.df_log = self.df_log.merge(df_parent_redact, on = [parent_organization] + sensitive_list, how='left')
         
         df_sensitive = self.df_log[self.df_log[child_organization].isnull() & self.df_log[parent_organization].isnull()]
-        redact_name = 'RedactSensitiveBinary'
-        df_sensitive.rename(columns = {'RedactBinary':redact_name}, inplace=True)
-        df_sensitive = df_sensitive[sensitive_list + [redact_name]]
+        redact_sensitive_name = 'RedactSensitiveBinary'
+        df_sensitive.rename(columns = {'RedactBinary':redact_sensitive_name}, inplace=True)
+        df_sensitive = df_sensitive[sensitive_list + [redact_sensitive_name]]
         df_sensitive.drop_duplicates(inplace=True)
         
         self.df_log = self.df_log.merge(df_zero_sensitive, on =sensitive_list, how='left')
         
+        self.df_log.loc[self.df_log[redact_parent_name] = 1 | self.df_log[redact_sensitive_name] = 1, 'RedactBinary'] = 1
         return self.df_log
     
     def apply_log(self):
