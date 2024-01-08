@@ -34,6 +34,7 @@ class DataAnonymizer:
         df_dataframes = pd.DataFrame()
         grouping_value = 0
         sensitive_combinations = [combo for i in range(1, len(self.sensitive_columns) + 1) for combo in combinations(self.sensitive_columns, i)]
+        
         if self.organization_columns[0] is not None:
             for organization_column in self.organization_columns:
                 for sensitive_combination in sensitive_combinations:
@@ -236,7 +237,7 @@ class DataAnonymizer:
         
         self.df_log = self.df_log.merge(df_zero_sensitive, on =sensitive_list, how='left')
         
-        self.df_log.loc[self.df_log[redact_parent_name] = 1 | self.df_log[redact_sensitive_name] = 1, 'RedactBinary'] = 1
+        self.df_log.loc[(self.df_log[redact_parent_name] == 1) | (self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         return self.df_log
     
     def apply_log(self):
@@ -261,6 +262,8 @@ class DataAnonymizer:
     # New method to call the specified functions
 
     def apply_anonymization(self):
+        self.redact_user_requested_records()
+        
         self.create_log()
         # Call less_than_threshold_not_zero
         self.less_than_threshold_not_zero()
@@ -282,6 +285,6 @@ class DataAnonymizer:
 
         #Call apply_log
         self.apply_log()
-
+        
         # Return the updated dataframe
         return self.df_log
