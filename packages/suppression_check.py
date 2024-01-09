@@ -242,11 +242,13 @@ class DataAnonymizer:
     
     def apply_log(self):
         if self.organization_columns[0] is not None:
-            df_original =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
+            df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
         else:
-            df_original =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
-            
-        return df_original
+            df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
+        columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
+        df_redacted = df_redacted[columns]
+        self.df_redacted = df_redacted
+        return self.df_redacted
     # New method to call the specified functions
 
     def apply_anonymization(self):
@@ -275,4 +277,4 @@ class DataAnonymizer:
         self.apply_log()
         
         # Return the updated dataframe
-        return self.df_log
+        return self.df_redacted
