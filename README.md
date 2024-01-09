@@ -64,9 +64,13 @@ Implements a more complex form of redaction where records are suppressed based o
 Apply log method finalizes the redaction process by merging the redaction log with the original data. It ensures that all redaction rules are applied consistently across the dataset.
 #### apply_anonymization()
 
-The central method that orchestrates the entire data anonymization process. It sequentially calls other methods in the class to apply a comprehensive anonymization strategy, resulting in a fully redacted and anonymized dataset.
+The central method that orchestrates the entire data anonymization process. Apply Anonymization sequentially calls other methods in the class to apply a comprehensive anonymization strategy, resulting in a fully redacted and anonymized dataset.
 
-Example Usage
+#### get_log()
+
+Outputs log in a dataframe for the user to access at any point. The main point is to be able to retrieve the log if an error occurs while running another method.
+
+### Example Usage
 Here is a quick example:
 
 ```python
