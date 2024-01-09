@@ -28,34 +28,33 @@ class DataAnonymizer:
         
         self.frequency = frequency
         self.minimum_threshold = minimum_threshold
+        self.parent_organization = parent_organization
+        self.child_organization = child_organization
         
 
     def create_log(self):
         df_dataframes = pd.DataFrame()
         grouping_value = 0
         sensitive_combinations = [combo for i in range(1, len(self.sensitive_columns) + 1) for combo in combinations(self.sensitive_columns, i)]
-        
-        if self.organization_columns[0] is not None:
-            for organization_column in self.organization_columns:
-                for sensitive_combination in sensitive_combinations:
-                    df_grouped = self.df.groupby([organization_column] + list(sensitive_combination))[self.frequency].sum().reset_index()
-                    df_grouped['Grouping'] = grouping_value
-                    grouping_value += 1
-                    df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-                    df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
-                    df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-                    df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
-                    df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
-        if self.organization_columns[0] is not None:
-            for organization_column in self.organization_columns:
-                df_grouped = self.df.groupby([organization_column])[self.frequency].sum().reset_index()
+        if self.parent_organization is not None:
+            for sensitive_combination in sensitive_combinations:
+                df_grouped = self.df.groupby([self.parent_organization] + list(sensitive_combination))[self.frequency].sum().reset_index()
                 df_grouped['Grouping'] = grouping_value
                 grouping_value += 1
                 df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-                df_grouped_min = df_not_redacted.groupby('Grouping')[self.frequency].min().reset_index()
+                df_grouped_min = df_not_redacted.groupby(self.parent_organization)[self.frequency].min().reset_index()
                 df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-                df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
+                df_grouped = df_grouped.merge(df_grouped_min, on=self.parent_organization, how='left')
                 df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+        if self.parent_organization is not None:
+            df_grouped = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
+            df_grouped['Grouping'] = grouping_value
+            grouping_value += 1
+            df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+            df_grouped_min = df_not_redacted.groupby('Grouping')[self.frequency].min().reset_index()
+            df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
+            df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
         for sensitive_combination in sensitive_combinations:
             df_grouped = self.df.groupby(list(sensitive_combination))[self.frequency].sum().reset_index()
             df_grouped['Grouping'] = grouping_value
@@ -105,6 +104,7 @@ class DataAnonymizer:
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
+        self.df_log = self.df_log.drop('UserRedact', axis=1)
         return self.df_log
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
@@ -221,56 +221,44 @@ class DataAnonymizer:
         return self.df_log
 
     def cross_suppression(self):
-        df_core = self.df_log[~self.df_log[child_organization].isnull() & ~self.df_log[parent_organization].isnull()]
-        df_parent_redact = self.df_log[self.df_log[child_organization].isnull()]
+        df_core = self.df_log[~self.df_log[self.child_organization].isnull() & ~self.df_log[self.parent_organization].isnull()]
+        df_parent_redact = self.df_log[self.df_log[self.child_organization].isnull()]
         redact_parent_name = 'RedactParentBinary'
         df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
-        df_parent_redact = df_zero_parent_redact[[parent_organization] + sensitive_list + [redact_parent_name]]
+        df_parent_redact = df_parent_redact[[self.parent_organization] + self.sensitive_columns + [redact_parent_name]]
         df_parent_redact.drop_duplicates(inplace=True)
-        self.df_log = self.df_log.merge(df_parent_redact, on = [parent_organization] + sensitive_list, how='left')
+        self.df_log = self.df_log.merge(df_parent_redact, on = [self.parent_organization] + self.sensitive_columns, how='left')
         
-        df_sensitive = self.df_log[self.df_log[child_organization].isnull() & self.df_log[parent_organization].isnull()]
+        df_sensitive = self.df_log[self.df_log[self.child_organization].isnull() & self.df_log[self.parent_organization].isnull()]
         redact_sensitive_name = 'RedactSensitiveBinary'
         df_sensitive.rename(columns = {'RedactBinary':redact_sensitive_name}, inplace=True)
-        df_sensitive = df_sensitive[sensitive_list + [redact_sensitive_name]]
+        df_sensitive = df_sensitive[self.sensitive_columns + [redact_sensitive_name]]
         df_sensitive.drop_duplicates(inplace=True)
         
-        self.df_log = self.df_log.merge(df_zero_sensitive, on =sensitive_list, how='left')
+        self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left')
         
         self.df_log.loc[(self.df_log[redact_parent_name] == 1) | (self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         return self.df_log
     
     def apply_log(self):
-        original_columns = list(self.df_log)
-        df_original =  self.df_log.merge(self.df, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
-        df_all =  self.df_log.merge(self.df, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='left')
-        df_not_original = df_all[df_all['Original'].isnull()]
-        df_redacted = df_not_original[df_not_original['RedactBinary'] == 1]
-        df_totals_redacted = df_redacted[original_columns]
-        df_totals_redacted['RedactTotals'] = 1
-        for organization in self.organization_columns:
-            df_organization = df_totals_redacted[~df_totals_redacted[organization].isnull()]
-            if not df_organization.empty:
-                for sensitive in self.sensitive_columns:
-                    df_sensitive = df_totals_redacted[~df_totals_redacted[sensitive].isnull()]
-                    if not df_sensitive.empty:
-                        df_temp = df_totals_redacted[[organization] + [sensitive] + ['RedactTotals']]
-                        df_original = df_original.merge(df_temp, on = [organization] + [sensitive], how='left')
-                        df_original.loc[df_original['RedactTotals'] == 1, 'Redact'] = 'Secondary Suppression'
-                        df_original.loc[df_original['RedactTotals'] == 1, 'RedactBinary'] = 1
+        if self.organization_columns[0] is not None:
+            df_original =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
+        else:
+            df_original =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
+            
         return df_original
     # New method to call the specified functions
 
     def apply_anonymization(self):
-        self.redact_user_requested_records()
-        
+
         self.create_log()
-        # Call less_than_threshold_not_zero
-        self.less_than_threshold_not_zero()
 
         # Call redact_user_requested_records
         self.redact_user_requested_records()
-
+        
+        # Call less_than_threshold_not_zero
+        self.less_than_threshold_not_zero()
+        
         # Call one_count_redacted
         self.one_count_redacted()
 
