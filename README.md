@@ -1,9 +1,12 @@
 # Data Anonymizer Script
 ## Overview
-The Data Anonymizer script is designed to anonymize sensitive data in a DataFrame. This script is especially useful in scenarios where data privacy and confidentiality are paramount. It includes various methods for redacting sensitive information based on criteria like frequency, minimum thresholds, and user-requested records.
+The Data Anonymizer script is designed to anonymize sensitive data in a DataFrame. This script is especially useful in scenarios where data privacy and confidentiality are paramount. It includes various methods for redacting sensitive information based on criteria such as frequency, minimum thresholds, and user-requested records.
 
 ## Requirements
+Python Version:
 * Python 3.10
+
+Packages: 
 * Pandas
 * itertools
 
@@ -38,34 +41,37 @@ Pandas for data manipulation (pd)
 
 #### create_log()
 
-Create log method generates a log of data groups based on sensitive columns and thresholds. It aggregates data, applies minimum threshold checks, and prepares a detailed log for further redaction steps.
+Generates a log of data groups based on sensitive columns and thresholds. The create log method aggregates data, applies minimum threshold checks, and prepares a detailed log for further redaction steps.
 #### redact_user_requested_records()
 
-Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column, this method will update its status to reflect user-requested redaction.
+Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column, the redact user requested records method will update its status to reflect user-requested redaction.
 #### less_than_threshold_not_zero()
 
-Applies primary suppression to records where the frequency is less than the specified minimum threshold but not zero. It updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
+Applies primary suppression to records where the frequency is less than the specified minimum threshold but not zero. The less than threshold not zero updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
+
 #### redact_threshold()
 
-Redact Threshold method identifies and redacts data that overlaps with other redacted values. It is useful for maintaining data integrity and ensuring that sensitive data is not indirectly exposed through overlapping data points.
+Identifies and redacts data that overlaps with other redacted values. The redact threshold method is useful for maintaining data integrity and ensuring that sensitive data is not indirectly exposed through overlapping data points.
 #### sum_redact()
 
 Redacts records based on the sum of their frequencies. If the total sum of a group of records is less than the minimum threshold, those records are redacted for additional privacy protection.
+
 #### one_count_redacted()
 
-Targets and redacts individual records in a group if they are the only ones left after other redactions. This is a form of secondary suppression to prevent singling out individual data points.
+Targets and redacts individual records in a group if they are the only ones left after other redactions. The one count redacted method is a form of secondary suppression to prevent singling out individual data points.
 #### one_redact_zero()
 
-Specifically focuses on redacting single records within groups that have a frequency of zero. This method ensures that these unique cases are handled appropriately to maintain data anonymity.
+Specifically focuses on if one single data point is redacted then redact the zero. The one redact zero method ensures that these unique cases are handled appropriately to maintain data anonymity.
+
 #### cross_suppression()
 
-Implements a more complex form of redaction where records are suppressed based on cross-referencing between parent and child organizations. It's designed to handle cases where sensitive data might be indirectly exposed through relationships between different data groups.
+Implements a more complex form of redaction where records are suppressed based on cross-referencing between parent and child organizations. The cross suppression method is designed to handle cases where sensitive data might be indirectly exposed through relationships between different data groups.
 #### apply_log()
 
-Apply log method finalizes the redaction process by merging the redaction log with the original data. It ensures that all redaction rules are applied consistently across the dataset.
+Apply log method finalizes the redaction process by merging the redaction log with the original data. The apply log method ensures that all redaction rules are applied consistently across the dataset.
 #### apply_anonymization()
 
-The central method that orchestrates the entire data anonymization process. Apply Anonymization sequentially calls other methods in the class to apply a comprehensive anonymization strategy, resulting in a fully redacted and anonymized dataset.
+The central method that orchestrates the entire data anonymization process. Apply anonymization sequentially calls other methods in the class to apply a comprehensive anonymization strategy, resulting in a fully redacted and anonymized dataset.
 
 #### get_log()
 
