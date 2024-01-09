@@ -128,7 +128,7 @@ As of now, the customization options for different redaction methods are limited
 ### Dependency on External Libraries
 The script's reliance on external libraries like Pandas may pose compatibility issues with different versions or in environments where these libraries are not available.
 
-Future Enhancements
+## Future Enhancements
 ### Dynamic Threshold Adjustment
 Implement an algorithm that dynamically adjusts the minimum threshold based on the dataset's size and diversity. Dynamic Threshold Adjustment would ensure more efficient and context-sensitive anonymization.
 
@@ -150,9 +150,6 @@ Implement parallel processing capabilities to handle large datasets more efficie
 ### Customizable Redaction Techniques
 Allow users to define custom redaction techniques, such as hashing or encryption, for specific columns or data types.
 
-### Detailed Anonymization Reporting
-Generate detailed reports post-anonymization, outlining what changes were made, which can be useful for audit trails and compliance with data protection regulations.
-
 ### Machine Learning Integration
 Leverage machine learning algorithms to identify and protect potential indirect identifiers, enhancing the effectiveness of the anonymization process.
 
@@ -168,6 +165,9 @@ Add features to ensure the security of the data during the anonymization process
 
 ## Authors
 Drew Bennett-Stein
+
 Nathan Clinton
+
 Garett Amstutz
+
 Seth Taylor
