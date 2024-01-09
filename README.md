@@ -21,19 +21,19 @@ Pandas for data manipulation (pd)
 
 ### DataAnonymizer Class
 #### __init__(df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10)
-df: Initializes the DataAnonymizer object with a data frame df.
+`df`: Initializes the DataAnonymizer object with a data frame df.
 
-parent_organization: Parent organization column name.
+`parent_organization`: Parent organization column name.
 
-child_organization: Child organization column name.
+`child_organization`: Child organization column name.
 
-sensitive_columns: Columns that contain sensitive data.
+`sensitive_columns`: Columns that contain sensitive data.
 
-frequency: Column indicating frequency/count of data.
+`frequency`: Column indicating frequency/count of data.
 
-redact_column: Column to apply redaction.
+`redact_column`: Column to apply redaction.
 
-minimum_threshold: The minimum threshold for redaction.
+`minimum_threshold`: The minimum threshold for redaction.
 
 #### create_log()
 
