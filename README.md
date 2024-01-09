@@ -24,12 +24,16 @@ Pandas for data manipulation (pd)
 df: Initializes the DataAnonymizer object with a data frame df.
 
 parent_organization: Parent organization column name.
+
 child_organization: Child organization column name.
+
 sensitive_columns: Columns that contain sensitive data.
+
 frequency: Column indicating frequency/count of data.
+
 redact_column: Column to apply redaction.
+
 minimum_threshold: The minimum threshold for redaction.
-The following methods are included in the class:
 
 #### create_log()
 
