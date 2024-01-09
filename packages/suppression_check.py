@@ -196,7 +196,7 @@ class DataAnonymizer:
         # Return the updated dataframe
         return self.df_log
     
-    def one_redact_zero (self):        
+    def one_redact_zero(self):        
         # Filtering the DataFrame based on School Year and SuppressionID        
         df_filtered = self.df_log[self.df_log['RedactBinary'] == 1]    
         
@@ -250,6 +250,9 @@ class DataAnonymizer:
         self.df_redacted = df_redacted
         return self.df_redacted
     # New method to call the specified functions
+
+    def get_log(self):
+        return self.df_log
 
     def apply_anonymization(self):
 
