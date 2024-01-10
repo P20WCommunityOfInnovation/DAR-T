@@ -1,0 +1,37 @@
+,ParentEntity,ChildEntity,Subgroup1,Subgroup2,GraduationCount,RedactBinary,Redact
+0,District1,School1,English Language Learner,Male,14,0,Not Redacted
+1,District1,School1,Not English Language Learner,Male,20,0,Not Redacted
+2,District1,School1,English Language Learner,Female,13,1,Secondary Suppression
+3,District1,School1,Not English Language Learner,Female,7,1,Primary Suppression
+4,District1,School1,English Language Learner,Non-binary,17,0,Not Redacted
+5,District1,School1,Not English Language Learner,Non-binary,22,0,Not Redacted
+6,District1,School2,English Language Learner,Male,9,1,Primary Suppression
+7,District1,School2,Not English Language Learner,Male,5,1,Primary Suppression
+8,District1,School2,English Language Learner,Female,12,0,Not Redacted
+9,District1,School2,Not English Language Learner,Female,4,1,Primary Suppression
+10,District1,School2,English Language Learner,Non-binary,34,0,Not Redacted
+11,District1,School2,Not English Language Learner,Non-binary,18,0,Not Redacted
+12,District2,School3,English Language Learner,Male,25,0,Not Redacted
+13,District2,School3,Not English Language Learner,Male,11,1,Secondary Suppression
+14,District2,School3,English Language Learner,Female,14,0,Not Redacted
+15,District2,School3,Not English Language Learner,Female,12,0,Not Redacted
+16,District2,School3,English Language Learner,Non-binary,7,1,Primary Suppression
+17,District2,School3,Not English Language Learner,Non-binary,2,1,Primary Suppression
+18,District2,School4,English Language Learner,Male,43,0,Not Redacted
+19,District2,School4,Not English Language Learner,Male,3,1,Primary Suppression
+20,District2,School4,English Language Learner,Female,80,0,Not Redacted
+21,District2,School4,Not English Language Learner,Female,20,1,Secondary Suppression
+22,District2,School4,English Language Learner,Non-binary,10,0,Not Redacted
+23,District2,School4,Not English Language Learner,Non-binary,31,0,Not Redacted
+24,District3,School5,English Language Learner,Male,7,1,Primary Suppression
+25,District3,School5,Not English Language Learner,Male,0,0,Not Redacted
+26,District3,School5,English Language Learner,Female,2,1,Primary Suppression
+27,District3,School5,Not English Language Learner,Female,0,0,Not Redacted
+28,District3,School5,English Language Learner,Non-binary,6,1,Primary Suppression
+29,District3,School5,Not English Language Learner,Non-binary,12,0,Not Redacted
+30,District3,School6,English Language Learner,Male,6,1,Primary Suppression
+31,District3,School6,Not English Language Learner,Male,11,1,Secondary Suppression
+32,District3,School6,English Language Learner,Female,12,0,Not Redacted
+33,District3,School6,Not English Language Learner,Female,24,0,Not Redacted
+34,District3,School6,English Language Learner,Non-binary,16,0,Not Redacted
+35,District3,School6,Not English Language Learner,Non-binary,19,0,Not Redacted

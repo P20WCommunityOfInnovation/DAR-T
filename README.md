@@ -170,7 +170,7 @@ Implement a feedback mechanism where the tool learns from its anonymization deci
 Add features to ensure the security of the data during the anonymization process, such as secure memory handling and protection against data leaks.
 
 
-## Authors
+## Contributors
 Drew Bennett-Stein
 
 Nathan Clinton
@@ -178,3 +178,11 @@ Nathan Clinton
 Garett Amstutz
 
 Seth Taylor
+
+Beth Kelley
+
+Didi Miles
+
+Stephanie Straus
+
+Devin Kammerdeiner

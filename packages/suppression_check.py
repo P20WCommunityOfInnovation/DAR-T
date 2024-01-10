@@ -249,8 +249,8 @@ class DataAnonymizer:
         df_redacted = df_redacted[columns]
         self.df_redacted = df_redacted
         return self.df_redacted
+        
     # New method to call the specified functions
-
     def get_log(self):
         return self.df_log
 
