@@ -1,6 +1,6 @@
 # Data Anonymizer Script
 ## Overview
-The Data Anonymizer script is designed to anonymize sensitive data in a DataFrame. This script is especially useful in scenarios where data privacy and confidentiality are paramount. It includes various methods for redacting sensitive information based on criteria such as frequency, minimum thresholds, and user-requested records.
+The Data Anonymizer script is crafted to ensure the anonymization of sensitive information within a DataFrame. Tailored for environments where data privacy and confidentiality are of utmost importance, encompasses a variety of methods to redact sensitive data. These methods are meticulously designed to cater to specific criteria, including frequency of data, predefined minimum thresholds, and records earmarked for redaction as per user requests. 
 
 ## Requirements
 Python Version:
