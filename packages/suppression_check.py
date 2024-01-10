@@ -4,7 +4,16 @@ from itertools import combinations
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns
     def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
-        organization_columns = [parent_organization, child_organization]
+        if (child_organization is None) & (parent_organization is None):
+            organization_columns = None
+        elif (parent_organization is not None) & (child_organization is None):
+            organization_columns = [parent_organization]
+        elif (parent_organization is None) & (child_organization is not None):
+            organization_columns = [child_organization]
+        else:
+            organization_columns = [parent_organization, child_organization]
+        print(organization_columns)
+        
         df['Original'] = 1
         # Create a copy of the input dataframe and store it as an instance variable
         self.df = df.copy()
@@ -221,23 +230,31 @@ class DataAnonymizer:
         return self.df_log
 
     def cross_suppression(self):
-        df_core = self.df_log[~self.df_log[self.child_organization].isnull() & ~self.df_log[self.parent_organization].isnull()]
-        df_parent_redact = self.df_log[self.df_log[self.child_organization].isnull()]
-        redact_parent_name = 'RedactParentBinary'
-        df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
-        df_parent_redact = df_parent_redact[[self.parent_organization] + self.sensitive_columns + [redact_parent_name]]
-        df_parent_redact.drop_duplicates(inplace=True)
-        self.df_log = self.df_log.merge(df_parent_redact, on = [self.parent_organization] + self.sensitive_columns, how='left')
-        
-        df_sensitive = self.df_log[self.df_log[self.child_organization].isnull() & self.df_log[self.parent_organization].isnull()]
+        if (self.child_organization is not None) & (self.parent_organization is not None):
+            df_parent_redact = self.df_log[self.df_log[self.child_organization].isnull()]
+            redact_parent_name = 'RedactParentBinary'
+            df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
+            df_parent_redact = df_parent_redact[[self.parent_organization] + self.sensitive_columns + [redact_parent_name]]
+            df_parent_redact.drop_duplicates(inplace=True)
+            self.df_log = self.df_log.merge(df_parent_redact, on = [self.parent_organization] + self.sensitive_columns, how='left')
+            self.df_log.loc[(self.df_log[redact_parent_name] == 1), 'RedactBinary'] = 1
+
+        if (self.child_organization is not None) & (self.parent_organization is not None):
+            df_sensitive = self.df_log[self.df_log[self.child_organization].isnull() & self.df_log[self.parent_organization].isnull()]
+        elif (self.child_organization is None) & (self.parent_organization is not None):
+            df_sensitive = self.df_log[self.df_log[self.parent_organization].isnull()]
+        elif (self.child_organization is not None) & (self.parent_organization is None):
+            df_sensitive = self.df_log[self.df_log[self.child_organization].isnull()]
+        else:
+            df_sensitive = self.df_log
+
         redact_sensitive_name = 'RedactSensitiveBinary'
         df_sensitive.rename(columns = {'RedactBinary':redact_sensitive_name}, inplace=True)
         df_sensitive = df_sensitive[self.sensitive_columns + [redact_sensitive_name]]
         df_sensitive.drop_duplicates(inplace=True)
-        
         self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left')
+        self.df_log.loc[(self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         
-        self.df_log.loc[(self.df_log[redact_parent_name] == 1) | (self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         return self.df_log
     
     def apply_log(self):
