@@ -44,7 +44,7 @@ Pandas for data manipulation (pd)
 Generates a log of data groups based on sensitive columns and thresholds. The create log method aggregates data, applies minimum threshold checks, and prepares a detailed log for further redaction steps.
 #### redact_user_requested_records()
 
-Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column, the redact user requested records method will update its status to reflect user-requested redaction.
+Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column with a `1`, the redact user requested records method will update its status to reflect user-requested redaction.
 #### less_than_threshold_not_zero()
 
 Applies primary suppression to records where the frequency is less than the specified minimum threshold but not zero. The less than threshold not zero updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
@@ -175,7 +175,7 @@ Drew Bennett-Stein
 
 Nathan Clinton
 
-Garett Amstutz
+Garrett Amstutz
 
 Seth Taylor
 
