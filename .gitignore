@@ -35,3 +35,7 @@ ipython_config.py
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
+data/NCLEACWDBLIDEAv112509.csv
+data/NCSCHCWDBLIDEAv112346.csv
+examples/ApplyAnonymization.csv
+examples/CreatedLog.csv
