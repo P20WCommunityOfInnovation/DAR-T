@@ -1,4 +1,5 @@
 import pytest
+from pytest_lazyfixture import lazy_fixture
 import pandas as pd
 from packages.suppression_check import DataAnonymizer
 
@@ -25,7 +26,7 @@ def sample_user_redact():
 
     return pd.DataFrame(user_redact_data)
 
-@pytest.mark.parametrize("sample_dataframe, redact_column", [(sample_no_user_redact, None), (sample_user_redact, 'UserRedact')])
+@pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_no_user_redact'), None), (lazy_fixture('sample_user_redact'), 'UserRedact')])
 def test_apply_anonymization_return_dataframe_with_redact_column(sample_dataframe, redact_column):
     """
     Test if 'Redact' column is added to the DataFrame.
@@ -35,7 +36,7 @@ def test_apply_anonymization_return_dataframe_with_redact_column(sample_datafram
     result_df = anonymizer.apply_anonymization()
     assert 'Redact' in result_df.columns
 
-@pytest.mark.parametrize("sample_dataframe, redact_column", [(sample_no_user_redact, None), (sample_user_redact, 'UserRedact')])
+@pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_no_user_redact'), None), (lazy_fixture('sample_user_redact'), 'UserRedact')])
 def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(sample_dataframe, redact_column):
     """
     Test if at least two rows per sensitive column are redacted.
