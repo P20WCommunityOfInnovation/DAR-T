@@ -17,11 +17,11 @@ ipython_config.py
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/*.code-snippets
 
 # Local History for Visual Studio Code
 .history/
@@ -34,8 +34,9 @@ ipython_config.py
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
+### Data Files
 data/NCLEACWDBLIDEAv112509.csv
 data/NCSCHCWDBLIDEAv112346.csv
 examples/ApplyAnonymization.csv
 examples/CreatedLog.csv
+
