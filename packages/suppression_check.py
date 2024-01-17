@@ -1,8 +1,6 @@
 import pandas as pd
 from itertools import combinations
 
-pd.set_option('display.max_columns', None)
-
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns
     def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
@@ -265,8 +263,6 @@ class DataAnonymizer:
         
         self.df_log.loc[(self.df_log[self.frequency] == 0) & (self.df_log['Zero'] == 1), 'Redact'] = 'Redact zero needed for secondary suppression'
         
-        print(self.df_log)
-        print(self.df_log.columns)
         return self.df_log
 
     def cross_suppression(self):
