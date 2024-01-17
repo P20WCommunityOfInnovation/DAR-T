@@ -44,7 +44,7 @@ def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(samp
     anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='Counts', redact_column=redact_column)
     anonymizer.create_log()
     result_df = anonymizer.apply_anonymization()
-    redacted = result_df[result_df['Redact'].notnull()]
+    redacted = result_df[result_df['Redact'] != 'Not Redacted']
 
     for column in anonymizer.sensitive_columns:
         assert (redacted.groupby(column)['Redact'].count()>=2).all()
