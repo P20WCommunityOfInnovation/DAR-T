@@ -22,7 +22,8 @@ class DataAnonymizer:
         
         # Rename the user supplied redact column to "UserRedact"
         if redact_column is not None:
-            self.df.rename({self.redact_column[0]: "UserRedact"}, axis = 1, inplace=True)
+            self.df.rename({redact_column: "UserRedact"}, axis = 1, inplace=True)
+            redact_column = 'UserRedact'
         else:
             self.df['UserRedact'] = 0
         
@@ -157,14 +158,25 @@ class DataAnonymizer:
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
         
         # Group the filtered dataframe by 'organization_columns' and sum the values in 'frequency'
-        df_grouped_less_than = df_redact_count.groupby(['Grouping'] + self.organization_columns, dropna=False)[self.frequency].sum().reset_index()
-        
-        df_grouped_less_than.rename(columns={self.frequency: "TotalSum"}, inplace=True)
+        if self.organization_columns[0] is not None:
+            df_grouped_less_than = df_redact_count.groupby(['Grouping'] + self.organization_columns, dropna=False)[self.frequency].sum().reset_index()
+            
+            df_grouped_less_than.rename(columns={self.frequency: "TotalSum"}, inplace=True)
 
-        df_grouped_less_than = df_grouped_less_than[['Grouping'] + self.organization_columns + ['TotalSum']]
+            df_grouped_less_than = df_grouped_less_than[['Grouping'] + self.organization_columns + ['TotalSum']]
         
         # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
-        self.df_log = self.df_log.merge(df_grouped_less_than, on=['Grouping'] + self.organization_columns, how='left')
+            self.df_log = self.df_log.merge(df_grouped_less_than, on=['Grouping'] + self.organization_columns, how='left')
+        
+        else:
+            df_grouped_less_than = df_redact_count.groupby(['Grouping'], dropna=False)[self.frequency].sum().reset_index()
+            
+            df_grouped_less_than.rename(columns={self.frequency: "TotalSum"}, inplace=True)
+
+            df_grouped_less_than = df_grouped_less_than[['Grouping'] + ['TotalSum']]
+        
+        # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
+            self.df_log = self.df_log.merge(df_grouped_less_than, on=['Grouping'], how='left')
         
         # Mark rows with maximum overlapping as 'Suppressed'
         mask = (self.df_log['TotalSum'] <= self.minimum_threshold) & (self.df_log['MinimumValue'] == self.df_log[self.frequency])
@@ -183,45 +195,66 @@ class DataAnonymizer:
         # Filter rows where the value in the column specified by 'frequency' is less than 'minimum_threshold' but not zero
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
         
-        # Group the filtered dataframe by 'organization_columns' and count the size of each group
-        df_grouped = df_redact_count.groupby(['Grouping'] + self.organization_columns, dropna=False).count().reset_index()
-        
-        df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
+        if self.organization_columns[0] is not None:
+            # Group the filtered dataframe by 'organization_columns' and count the size of each group
+            df_grouped = df_redact_count.groupby(['Grouping'] + self.organization_columns, dropna=False).count().reset_index()
+            df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
+            df_grouped = df_grouped[['Grouping'] + self.organization_columns + ['counts']]
+            # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
+            self.df_log = self.df_log.merge(df_grouped, on=['Grouping'] + self.organization_columns, how='left')
 
-        df_grouped = df_grouped[['Grouping'] + self.organization_columns + ['counts']]
-        
-        # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
-        self.df_log = self.df_log.merge(df_grouped, on=['Grouping'] + self.organization_columns, how='left')
-
+        else:
+            # Group the filtered dataframe by 'organization_columns' and count the size of each group
+            df_grouped = df_redact_count.groupby(['Grouping'], dropna=False).count().reset_index()
+            df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
+            df_grouped = df_grouped[['Grouping'] + ['counts']]
+            # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
+            self.df_log = self.df_log.merge(df_grouped, on=['Grouping'] , how='left')
+       
         mask = (self.df_log['counts'] == 1) & (self.df_log['MinimumValue'] == self.df_log[self.frequency])
         
         self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update the 'Redact' column with a specific message for rows where 'MinimumValue' is not null
-
         self.df_log.loc[mask, 'Redact'] = 'Secondary Suppression'
         #self.df_log.loc[mask, 'Redact'] = 'Count minimum threshold needed secondary suppression'
         
         # Return the updated dataframe
         return self.df_log
+
     
     def one_redact_zero(self):        
         # Filtering the DataFrame based on School Year and SuppressionID        
         df_filtered = self.df_log[self.df_log['RedactBinary'] == 1]    
         
-        # Grouping by Organization and counting StudentCount, then filtering groups with a single record  
-        df_grouped_count = df_filtered.groupby(['Grouping'] + self.organization_columns + self.sensitive_columns, dropna=False).count().reset_index()  
-        
-        df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
-        
-        df_filtered_grouped_count = df_grouped_count[df_grouped_count['ZeroSuppressedCounts'] == 1]
+        # Grouping by Organization and counting StudentCount, then filtering groups with a single record 
+        if self.organization_columns[0] is not None: 
+            df_grouped_count = df_filtered.groupby(['Grouping'] + self.organization_columns + self.sensitive_columns, dropna=False).count().reset_index()  
+            
+            df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
+            
+            df_filtered_grouped_count = df_grouped_count[df_grouped_count['ZeroSuppressedCounts'] == 1]
 
-        df_filtered_grouped_count = df_filtered_grouped_count[['Grouping'] + self.organization_columns]
-        
-        df_filtered_grouped_count['Zero'] = 1    
+            df_filtered_grouped_count = df_filtered_grouped_count[['Grouping'] + self.organization_columns]
+            
+            df_filtered_grouped_count['Zero'] = 1    
 
-        # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
-        self.df_log = self.df_log.merge(df_filtered_grouped_count, on=['Grouping'] + self.organization_columns, how='left') 
+            # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
+            self.df_log = self.df_log.merge(df_filtered_grouped_count, on=['Grouping'] + self.organization_columns, how='left') 
+        
+        else:
+            df_grouped_count = df_filtered.groupby(['Grouping'] + self.sensitive_columns, dropna=False).count().reset_index()  
+            
+            df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
+            
+            df_filtered_grouped_count = df_grouped_count[df_grouped_count['ZeroSuppressedCounts'] == 1]
+
+            df_filtered_grouped_count = df_filtered_grouped_count[['Grouping']]
+            
+            df_filtered_grouped_count['Zero'] = 1    
+
+            # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
+            self.df_log = self.df_log.merge(df_filtered_grouped_count, on=['Grouping'], how='left') 
 
         self.df_log.drop_duplicates(inplace=True)
         self.df_log.reset_index(drop=True, inplace=True)
@@ -255,7 +288,8 @@ class DataAnonymizer:
         df_sensitive.rename(columns = {'RedactBinary':redact_sensitive_name}, inplace=True)
         df_sensitive = df_sensitive[self.sensitive_columns + [redact_sensitive_name]]
         df_sensitive.drop_duplicates(inplace=True)
-        self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left')
+        self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left', suffixes=('', '_y'))
+        self.df_log.drop(self.df_log.filter(regex='_y$').columns, axis = 1, inplace = True)
         self.df_log.loc[(self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         
         return self.df_log
@@ -263,9 +297,10 @@ class DataAnonymizer:
     def apply_log(self):
         if self.organization_columns[0] is not None:
             df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
+            columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
-        columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
+            columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
         df_redacted = df_redacted[columns]
         self.df_redacted = df_redacted
         return self.df_redacted
@@ -301,3 +336,4 @@ class DataAnonymizer:
         
         # Return the updated dataframe
         return self.df_redacted
+        
