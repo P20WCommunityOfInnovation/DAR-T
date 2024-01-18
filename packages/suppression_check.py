@@ -272,6 +272,7 @@ class DataAnonymizer:
             df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
             df_parent_redact = df_parent_redact[[self.parent_organization] + self.sensitive_columns + [redact_parent_name]]
             df_parent_redact.drop_duplicates(inplace=True)
+            display(df_parent_redact)
             self.df_log = self.df_log.merge(df_parent_redact, on = [self.parent_organization] + self.sensitive_columns, how='left')
             self.df_log.loc[(self.df_log[redact_parent_name] == 1), 'RedactBinary'] = 1
 
@@ -288,7 +289,10 @@ class DataAnonymizer:
         df_sensitive.rename(columns = {'RedactBinary':redact_sensitive_name}, inplace=True)
         df_sensitive = df_sensitive[self.sensitive_columns + [redact_sensitive_name]]
         df_sensitive.drop_duplicates(inplace=True)
-        self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left', suffixes=('', '_y'))
+        if (self.child_organization is not None) & (self.parent_organization is not None):
+            self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns, how='left', suffixes = ('', '_y'))
+        else:
+            self.df_log = self.df_log.merge(df_sensitive, on =self.sensitive_columns + [redact_sensitive_name], how='left', suffixes = ('', '_y'))
         self.df_log.drop(self.df_log.filter(regex='_y$').columns, axis = 1, inplace = True)
         self.df_log.loc[(self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         
