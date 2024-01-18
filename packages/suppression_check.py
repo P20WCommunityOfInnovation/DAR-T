@@ -272,7 +272,6 @@ class DataAnonymizer:
             df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
             df_parent_redact = df_parent_redact[[self.parent_organization] + self.sensitive_columns + [redact_parent_name]]
             df_parent_redact.drop_duplicates(inplace=True)
-            display(df_parent_redact)
             self.df_log = self.df_log.merge(df_parent_redact, on = [self.parent_organization] + self.sensitive_columns, how='left')
             self.df_log.loc[(self.df_log[redact_parent_name] == 1), 'RedactBinary'] = 1
 
