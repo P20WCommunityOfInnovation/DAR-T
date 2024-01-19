@@ -208,7 +208,6 @@ class DataAnonymizer:
             df_grouped = df_redact_count.groupby(['Grouping'], dropna=False).count().reset_index()
             df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
             df_grouped = df_grouped[['Grouping'] + ['counts']]
-            display(df_grouped)
             # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
             self.df_log = self.df_log.merge(df_grouped, on=['Grouping'] , how='left')
        
