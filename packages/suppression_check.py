@@ -45,41 +45,44 @@ class DataAnonymizer:
     def create_log(self):
         df_dataframes = pd.DataFrame()
         grouping_value = 0
-        sensitive_combinations = [combo for i in range(1, len(self.sensitive_columns) + 1) for combo in combinations(self.sensitive_columns, i)]
+        self.sensitive_combinations = sorted([combo for i in range(1, len(self.sensitive_columns) + 1) for combo in combinations(self.sensitive_columns, i)], key=len, reverse=True)
         if self.parent_organization is not None:
-            for sensitive_combination in sensitive_combinations:
-                df_grouped = self.df.groupby([self.parent_organization] + list(sensitive_combination))[self.frequency].sum().reset_index()
+            for sensitive_combination in self.sensitive_combinations:
+                df_grouped = self.df.groupby([self.parent_organization] + list(sensitive_combination)  + ['UserRedact'])[self.frequency].sum().reset_index()
                 df_grouped['Grouping'] = grouping_value
                 grouping_value += 1
                 df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-                df_grouped_min = df_not_redacted.groupby(self.parent_organization)[self.frequency].min().reset_index()
+                df_grouped_min = df_not_redacted.groupby([self.parent_organization]  + ['UserRedact'])[self.frequency].min().reset_index()
                 df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-                df_grouped = df_grouped.merge(df_grouped_min, on=self.parent_organization, how='left')
+                df_grouped = df_grouped.merge(df_grouped_min, on=[self.parent_organization] + ['UserRedact'], how='left')
                 df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
         if self.parent_organization is not None:
-            df_grouped = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
+            df_grouped = self.df.groupby([self.parent_organization]  + ['UserRedact'])[self.frequency].sum().reset_index()
             df_grouped['Grouping'] = grouping_value
             grouping_value += 1
             df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-            df_grouped_min = df_not_redacted.groupby('Grouping')[self.frequency].min().reset_index()
+            df_grouped_min = df_not_redacted.groupby(['Grouping']  + ['UserRedact'])[self.frequency].min().reset_index()
             df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
+            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping']  + ['UserRedact'], how='left')
             df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
-        for sensitive_combination in sensitive_combinations:
-            df_grouped = self.df.groupby(list(sensitive_combination))[self.frequency].sum().reset_index()
+        for sensitive_combination in self.sensitive_combinations:
+            list_combination = list(sensitive_combination)
+            df_grouped = self.df.groupby(list_combination + ['UserRedact'])[self.frequency].sum().reset_index()
             df_grouped['Grouping'] = grouping_value
             grouping_value += 1
-            df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-            df_grouped_min = df_not_redacted.groupby(['Grouping'])[self.frequency].min().reset_index()
-            df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
             df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+            df_not_redacted = df_dataframes[df_dataframes[self.frequency] > self.minimum_threshold]
+            if list_combination != self.sensitive_columns:
+                df_grouped_min = df_not_redacted.groupby(['Grouping'] + list_combination + ['UserRedact'])[self.frequency].min().reset_index()
+                string_combination = ''.join(list_combination)
+                df_grouped_min.rename(columns={self.frequency: "MinimumValue" + string_combination}, inplace=True)
+                df_dataframes = df_dataframes.merge(df_grouped_min, on= ['Grouping'] + list_combination + ['UserRedact'], how='left')
         if self.organization_columns[0] is not None:
             df_log_original =  pd.DataFrame(self.df[self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column])
         else:
             df_log_original =  pd.DataFrame(self.df[self.sensitive_columns +[self.frequency] + self.redact_column])
         df_log_original['Grouping'] = grouping_value
-        df_log = pd.concat([df_dataframes, df_log_original], ignore_index=True)
+        df_log = df_dataframes
         df_log = df_log.drop_duplicates().reset_index(drop=True)
         df_log['RedactBinary'] = 0
         df_log['Redact'] = 'Not Redacted'
@@ -194,7 +197,7 @@ class DataAnonymizer:
     def one_count_redacted(self):
         # Filter rows where the value in the column specified by 'frequency' is less than 'minimum_threshold' but not zero
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
-        
+        print(self.organization_columns)
         if self.organization_columns[0] is not None:
             # Group the filtered dataframe by 'organization_columns' and count the size of each group
             df_grouped = df_redact_count.groupby(['Grouping'] + self.organization_columns, dropna=False).count().reset_index()
@@ -205,7 +208,8 @@ class DataAnonymizer:
 
         else:
             # Group the filtered dataframe by 'organization_columns' and count the size of each group
-            df_grouped = df_redact_count.groupby(['Grouping'], dropna=False).count().reset_index()
+            df_grouped = df_redact_count.groupby(['Grouping'] + self.sensitive_columns, dropna=False).count().reset_index()
+            display(df_grouped)
             df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
             df_grouped = df_grouped[['Grouping'] + ['counts']]
             # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'

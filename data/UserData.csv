@@ -1,26 +1,26 @@
-,Subgroup1,Subgroup2,Counts,TestRedactBinary,UserRedact
-0,STEM,Certificate,10,1,1
-1,STEM,Associate,9,1,0
-2,STEM,Bachelor,20,0,1
-3,STEM,Masters,100,0,1
-4,STEM,Doctorate,40,0,0
-5,Business,Certificate,15,1,0
-6,Business,Associate,40,0,0
-7,Business,Bachelor,15,0,0
-8,Business,Masters,90,0,0
-9,Business,Doctorate,11,1,0
-10,Education,Certificate,50,0,1
-11,Education,Associate,30,0,0
-12,Education,Bachelor,12,0,0
-13,Education,Masters,6,1,0
-14,Education,Doctorate,44,0,0
-15,Health,Certificate,100,0,0
-16,Health,Associate,20,0,0
-17,Health,Bachelor,100,0,0
-18,Health,Masters,30,1,0
-19,Health,Doctorate,70,0,0
-20,Social and Behavioral,Certificate,25,0,0
-21,Social and Behavioral,Associate,11,1,0
-22,Social and Behavioral,Bachelor,60,0,0
-23,Social and Behavioral,Masters,50,0,0
-24,Social and Behavioral,Doctorate,10,1,0
+Subgroup1,Subgroup2,Counts,TestRedactBinary,UserRedact
+STEM,Certificate,10,1,1
+STEM,Associate,9,1,0
+STEM,Bachelor,20,0,1
+STEM,Masters,100,0,1
+STEM,Doctorate,40,0,0
+Business,Certificate,15,1,0
+Business,Associate,40,0,0
+Business,Bachelor,15,0,0
+Business,Masters,90,0,0
+Business,Doctorate,11,1,0
+Education,Certificate,50,0,1
+Education,Associate,30,0,0
+Education,Bachelor,12,0,0
+Education,Masters,6,1,0
+Education,Doctorate,44,0,0
+Health,Certificate,100,0,0
+Health,Associate,20,0,0
+Health,Bachelor,100,0,0
+Health,Masters,30,1,0
+Health,Doctorate,70,0,0
+Social and Behavioral,Certificate,25,0,0
+Social and Behavioral,Associate,11,1,0
+Social and Behavioral,Bachelor,60,0,0
+Social and Behavioral,Masters,50,0,0
+Social and Behavioral,Doctorate,10,1,0
