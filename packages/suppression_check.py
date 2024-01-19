@@ -208,6 +208,7 @@ class DataAnonymizer:
             df_grouped = df_redact_count.groupby(['Grouping'], dropna=False).count().reset_index()
             df_grouped.rename(columns={self.frequency: "counts"}, inplace=True)
             df_grouped = df_grouped[['Grouping'] + ['counts']]
+            display(df_grouped)
             # Merge the original dataframe with the result dataframe based on 'merged_columns' and 'greater_than_columns'
             self.df_log = self.df_log.merge(df_grouped, on=['Grouping'] , how='left')
        
@@ -305,6 +306,7 @@ class DataAnonymizer:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
         df_redacted = df_redacted[columns]
+        # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
         return self.df_redacted
         
