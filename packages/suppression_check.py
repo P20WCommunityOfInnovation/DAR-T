@@ -227,9 +227,12 @@ class DataAnonymizer:
 
     
     def one_redact_zero(self):        
-        # Filtering the DataFrame based on School Year and SuppressionID        
-        df_filtered = self.df_log[self.df_log['RedactBinary'] == 1]    
-        
+        df_log_na = self.df_log.copy()
+
+        temp_value = 'NaFill'
+
+        for sensitive_column in self.sensitive_columns:
+            df_log_na[sensitive_column].fillna(temp_value, inplace=True)  
         
         # Grouping by Organization and counting StudentCount, then filtering groups with a single record 
         if self.organization_columns[0] is not None: 
@@ -247,25 +250,26 @@ class DataAnonymizer:
             self.df_log = self.df_log.merge(df_filtered_grouped_count, on=['Grouping'] + self.organization_columns, how='left') 
         
         else:
-            df_grouped_count = df_filtered.groupby(['Grouping'] + self.sensitive_columns, dropna=False).count().reset_index()  
-            
-            df_grouped_count.rename(columns={self.frequency: "ZeroSuppressedCounts"}, inplace=True)
-            
-            df_filtered_grouped_count = df_grouped_count[df_grouped_count['ZeroSuppressedCounts'] == 1]
+            for sensitive_combination in self.sensitive_combinations:
+                list_combination = list(sensitive_combination)
+                if list_combination != self.sensitive_columns:
+                    string_combination = ''.join(list_combination)
+                    df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
+                    df_redact_less['Redacted'] = 1
+                    df_count = df_redact_less.groupby(['Grouping'] + list_combination)['Redacted'].count().reset_index()
+                    df_one_redacted = df_count[df_count['Redacted'] == 1]
+                    if not df_one_redacted.empty:
+                        df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
+                        df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)['Counts'].min().reset_index()
+                        df_minimum.rename(columns={'Counts':'LastMiniumValue'}, inplace=True)
+                        df_minimum_redacted = df_one_redacted.merge(df_minimum, on = ['Grouping'] + list_combination)
+                        df_minimum_one = df_log_na.merge(df_minimum_redacted, on = ['Grouping'] + list_combination, how='left')
+                        mask = (df_minimum_one['Counts'] == df_minimum_one['LastMiniumValue'])
+                        df_log_na.loc[mask, 'RedactBinary'] = 1
+                        df_log_na.loc[mask, 'Redact'] = 'Secondary Suppression'
 
-            df_filtered_grouped_count = df_filtered_grouped_count[['Grouping']]
-            
-            df_filtered_grouped_count['Zero'] = 1    
-
-            # Merge the original DataFrame with the filtered grouped DataFrame based on DimSeaID        
-            self.df_log = self.df_log.merge(df_filtered_grouped_count, on=['Grouping'], how='left') 
-
-        self.df_log.drop_duplicates(inplace=True)
-        self.df_log.reset_index(drop=True, inplace=True)
-
-        self.df_log.loc[(self.df_log[self.frequency] == 0) & (self.df_log['Zero'] == 1), 'RedactBinary'] = 1
-        
-        self.df_log.loc[(self.df_log[self.frequency] == 0) & (self.df_log['Zero'] == 1), 'Redact'] = 'Redact zero needed for secondary suppression'
+        self.df_log.loc[df_log_na['RedactBinary'] == 1, 'RedactBinary'] = 1
+        self.df_log.loc[df_log_na['Redact'] == 'Secondary Suppression', 'Redact'] = 'Secondary Suppression'
         
         return self.df_log
 
@@ -299,6 +303,7 @@ class DataAnonymizer:
         self.df_log.drop(self.df_log.filter(regex='_y$').columns, axis = 1, inplace = True)
         self.df_log.loc[(self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         
+        self.df_log.loc[(self.df_log['RedactBinary'] != 1), 'RedactBinary'] = 0
         return self.df_log
     
     def apply_log(self):
