@@ -111,6 +111,8 @@ class DataAnonymizer:
 
         self.df_log.loc[:, 'Redact'] = 'Not Redacted'
 
+        self.df_log.loc[:, 'RedactBreakdown'] = 'Not Redacted'
+
         print('Log created!')
         return self.df_log
 
@@ -119,6 +121,7 @@ class DataAnonymizer:
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
+        self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBreakdown'] = ', User-requested redaction'
         self.df_log = self.df_log.drop('UserRedact', axis=1)
         print('Completed review if user redact column exists.')
         return self.df_log
@@ -133,7 +136,7 @@ class DataAnonymizer:
         
         # Update a new column named 'Redact' with a message for the rows that meet the condition specified by the mask
         self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
-        #self.df_log.loc[mask, 'Redact'] = f'Less Than {self.minimum_threshold} and not zero'
+        self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} and not zero'
 
         print('Completed redacting values less than threshold and not zero.')
         # Return the updated dataframe
@@ -156,6 +159,8 @@ class DataAnonymizer:
         self.df_log.loc[mask, 'Redact'] = 'Overlapping threshold secondary suppression'
         
         self.df_log.loc[mask, 'RedactBinary'] = 1
+
+        self.df_log.loc[mask, 'RedactBreakdown'] += ', Overlapping threshold secondary suppression'
             
         # Return the modified dataframe
         print('Completed redaction based on the overlapping relationships between organizations and subgroups.')
@@ -216,6 +221,7 @@ class DataAnonymizer:
                     mask = (df_primary['Redacted'] == 1) & (df_primary["MinimumValue" + string_combination] == df_primary[self.frequency])
                     self.df_log.loc[mask, 'RedactBinary'] = 1
                     self.df_log.loc[mask, 'Redact'] = 'Secondary Suppression'
+                    self.df_log.loc[mask, 'RedactBreakdown'] += ', One count redacted leading to secondary suppression'
 
         else:
             for sensitive_combination in self.sensitive_combinations:
@@ -228,6 +234,7 @@ class DataAnonymizer:
                     mask = (df_primary['Redacted'] == 1) & (df_primary["MinimumValue" + string_combination] == df_primary[self.frequency])
                     self.df_log.loc[mask, 'RedactBinary'] = 1
                     self.df_log.loc[mask, 'Redact'] = 'Secondary Suppression'
+                    self.df_log.loc[mask, 'RedactBreakdown'] += ', One count redacted leading to secondary suppression'
 
         print('Completion of initial step with secondary disclosure avoidance!')
         # Return the updated dataframe
@@ -275,9 +282,11 @@ class DataAnonymizer:
                         mask = (df_minimum_one['Counts'] == df_minimum_one['LastMiniumValue'])
                         df_log_na.loc[mask, 'RedactBinary'] = 1
                         df_log_na.loc[mask, 'Redact'] = 'Secondary Suppression'
+                        df_log_na.loc[mask, 'RedactBreakdown'] += ', Redacting zeroes or other remaining values missed in one count function'
 
         self.df_log.loc[df_log_na['RedactBinary'] == 1, 'RedactBinary'] = 1
         self.df_log.loc[df_log_na['Redact'] == 'Secondary Suppression', 'Redact'] = 'Secondary Suppression'
+        self.df_log.loc[:, 'RedactBreakdown'] = df_log_na['RedactBreakdown']
 
         print('Complete review of secondary disclosure avoidance where review of one count of redacted category in a group.')
         
@@ -315,6 +324,8 @@ class DataAnonymizer:
         self.df_log.loc[(self.df_log[redact_sensitive_name] == 1), 'RedactBinary'] = 1
         
         self.df_log.loc[(self.df_log['RedactBinary'] != 1), 'RedactBinary'] = 0
+
+        self.df_log['RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
         print('Completion of analysis if secondary redaction on aggregate levels need to be applied to original dataframe.')
         return self.df_log
     
@@ -322,10 +333,10 @@ class DataAnonymizer:
         print('Start applying log to given dataframe.')
         if self.organization_columns[0] is not None:
             df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
-            columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
+            columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
-            columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact']
+            columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
         df_redacted = df_redacted[columns]
         # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
