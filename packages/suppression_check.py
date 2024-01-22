@@ -121,7 +121,7 @@ class DataAnonymizer:
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
-        self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBreakdown'] = ', User-requested redaction'
+        self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBreakdown'] += ', User-requested redaction'
         self.df_log = self.df_log.drop('UserRedact', axis=1)
         print('Completed review if user redact column exists.')
         return self.df_log
