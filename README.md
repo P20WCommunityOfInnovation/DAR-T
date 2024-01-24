@@ -42,6 +42,32 @@ Pandas for data manipulation (pd)
 #### create_log()
 
 Generates a log of data groups based on sensitive columns and thresholds. The create log method aggregates data, applies minimum threshold checks, and prepares a detailed log for further redaction steps.
+
+##### Grouping
+Puts each aggregate level in a numeric value so that the rest of the dataset can be analyzed without overlapping the value sets in other columns.
+
+#### MinimumValue + `Sensitive Column Name`
+Find the lowest value of that sensitive column that is not redacted and generates a number to be used going forward.
+
+#### RedactBinary
+Binary Value representing whether the data is or is not redacted
+
+#### Redact
+Signals whether the dataset is not redacted, has primary suppression, or secondary suppression is applied.
+
+`Primary Suppression` - Occurs when the value is less than the given threshold and is not zero
+`Secondary Suppression` - Occurs when the value is suppressed in primary suppression and needs this value to be covered so the other is not represented.
+
+#### Redact Breakdown
+Represents the steps taken to properly redact the information within the data set. 
+
+`Not Redacted` - Value was not redacted.
+`Less Than 10 and not zero` - The value was less than the threshold, and the value is not zero.
+`One count redacted leading to secondary suppression` - Only one value in the set or the sum of the values was less than the threshold was redacted, so this value needed to be redacted.
+`Redacting zeroes or other remaining values missed in one count function` - If the redaction in the `One count redacted leading to secondary suppression` leads to values still being represented through counter mathematics.
+`Redacting based on aggregate level redaction` - Using the aggregates of the sensitive columns or the organization columns leads to the suppression being applied on the original counts. 
+
+
 #### redact_user_requested_records()
 
 Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column with a `1`, the redact user requested records method will update its status to reflect user-requested redaction.
