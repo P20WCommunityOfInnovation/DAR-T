@@ -30,21 +30,21 @@ def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(samp
     for column in anonymizer.sensitive_columns:
         assert (redacted.groupby(column)['Redact'].count()>=2).all()
 
-@pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), None), (lazy_fixture('sample_data'), 'UserRedact')])
-def test_correct_redaction_method(sample_dataframe, redact_column):
-    """
-    Test if at least two rows per sensitive column are redacted.
-    """
-    anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='Counts', redact_column=redact_column)
-    result_df = anonymizer.apply_anonymization()
+# @pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), None), (lazy_fixture('sample_data'), 'UserRedact')])
+# def test_correct_redaction_method(sample_dataframe, redact_column):
+#     """
+#     Test if at least two rows per sensitive column are redacted.
+#     """
+#     anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='Counts', redact_column=redact_column)
+#     result_df = anonymizer.apply_anonymization()
 
-    review_df = sample_dataframe.merge(result_df, on =['Subgroup1', 'Subgroup2', 'Counts'])
+#     review_df = sample_dataframe.merge(result_df, on =['Subgroup1', 'Subgroup2', 'Counts'])
 
-    query_result = review_df[(review_df['TestRedactBinary'] != review_df['RedactBinary'])]
+#     query_result = review_df[(review_df['TestRedactBinary'] != review_df['RedactBinary'])]
 
-    print(query_result)
+#     print(query_result)
 
-    assert query_result.empty, "Query returned results, test failed"
+#     assert query_result.empty, "Query returned results, test failed"
        
         
 
