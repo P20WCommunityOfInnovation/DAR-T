@@ -1,4 +1,5 @@
-#### How to run DAFne from your R file ###
+#### How to run DAFne from your R file ####
+# Python must be installed locally to utilize this tool
 
 # import reticulate package, which enables you to access and run Python
 library(reticulate)
