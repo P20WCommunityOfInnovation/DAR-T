@@ -9,6 +9,7 @@ Python Version:
 Packages: 
 * Pandas
 * itertools
+* logging
 
 You can install the required packages using pip:
 

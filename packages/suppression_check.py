@@ -1,5 +1,14 @@
 import pandas as pd
+import logging
 from itertools import combinations
+
+# Configure logging 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO) #Sets lowest level logger will handle. Debug level messages will be ignored with this setting. 
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s') 
+handler = logging.StreamHandler() #Sends logs to console by default
+handler.setFormatter(formatter) 
+logger.addHandler(handler)
 
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns
@@ -12,7 +21,7 @@ class DataAnonymizer:
             organization_columns = [child_organization]
         else:
             organization_columns = [parent_organization, child_organization]
-        print(organization_columns)
+        logger.info(organization_columns)
         
         df['Original'] = 1
         # Create a copy of the input dataframe and store it as an instance variable
@@ -30,7 +39,7 @@ class DataAnonymizer:
         
         # Check the type of organization_columns and store it as an instance variable
         if redact_column is None:
-            print('Redact is empty or not included')  # Print a message if organization_columns is None
+            logger.info('Redact is empty or not included')  # Display a message if organization_columns is None
             self.redact_column = ['UserRedact']  # Initialize an empty list
         elif isinstance(redact_column, str):
             self.redact_column = [redact_column]  # Convert a single string to a list with one item
@@ -44,7 +53,7 @@ class DataAnonymizer:
         
 
     def create_log(self):
-        print('Creating log!')
+        logger.info('Creating log!')
         df_dataframes = pd.DataFrame()
         grouping_value = 0
         if self.parent_organization is not None:
@@ -123,23 +132,23 @@ class DataAnonymizer:
 
         self.df_log.loc[:, 'RedactBreakdown'] = 'Not Redacted'
 
-        print('Log created!')
+        logger.info('Log created!')
         return self.df_log
 
     def redact_user_requested_records(self):
-        print('Seeing if user redact column exist.')
+        logger.info('Seeing if user redact column exists.')
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBreakdown'] += ', User-requested redaction'
         self.df_log = self.df_log.drop('UserRedact', axis=1)
-        print('Completed review if user redact column exists.')
+        logger.info('Completed review if user redact column exists.')
         return self.df_log
     # Method to redact values in the dataframe that are less than a minimum threshold but not zero
     def less_than_threshold_not_zero(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
         # has values less than 'minimum_threshold' and not equal to zero
-        print('Redacting values are less than threshold and not zero.')
+        logger.info('Redacting values that are less than the threshold and not zero.')
         mask = (self.df_log[self.frequency] <= self.minimum_threshold) & (self.df_log[self.frequency] != 0)
 
         self.df_log.loc[mask, 'RedactBinary'] = 1
@@ -148,13 +157,13 @@ class DataAnonymizer:
         self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
         self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} and not zero'
 
-        print('Completed redacting values less than threshold and not zero.')
+        logger.info('Completed redacting values less than the threshold and not zero.')
         # Return the updated dataframe
         return self.df_log
 
     # Method to redact values in the dataframe that are overlapping with other redacted values
     def redact_threshold(self):
-        print('Begin Redacting based on the overlapping relationships between organizations and subgroups.')
+        logger.info('Begin Redacting based on the overlapping relationships between organizations and subgroups.')
         self.df_log.loc[:, 'Overlapping'] = 0
         
         # Loop through each sensitive column to check for overlapping sensitive information
@@ -173,7 +182,7 @@ class DataAnonymizer:
         self.df_log.loc[mask, 'RedactBreakdown'] += ', Overlapping threshold secondary suppression'
             
         # Return the modified dataframe
-        print('Completed redaction based on the overlapping relationships between organizations and subgroups.')
+        logger.info('Completed redaction based on the overlapping relationships between organizations and subgroups.')
         return self.df_log
 
     # # Method to redact values in the dataframe that are the sum of minimum threshold 
@@ -216,7 +225,7 @@ class DataAnonymizer:
 
     # Method to redact values in the dataframe that are the only value in the group
     def one_count_redacted(self):
-        print('Start review is secondary disclosure avoidance is needed and begin application.') 
+        logger.info('Start review of if secondary disclosure avoidance is needed and begin application.') 
         # Filter rows where the value in the column specified by 'frequency' is less than 'minimum_threshold' but not zero
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
         df_redact_count['Redacted'] = 1
@@ -246,12 +255,12 @@ class DataAnonymizer:
                     self.df_log.loc[mask, 'Redact'] = 'Secondary Suppression'
                     self.df_log.loc[mask, 'RedactBreakdown'] += ', One count redacted leading to secondary suppression'
 
-        print('Completion of initial step with secondary disclosure avoidance!')
+        logger.info('Completion of initial step with secondary disclosure avoidance!')
         # Return the updated dataframe
         return self.df_log
     
     def one_redact_zero(self):    
-        print('Start review of next step of secondary disclosure avoidance where review of one count of redacted category in a group.')
+        logger.info('Start review of next step of secondary disclosure avoidance where review of one count of redacted category in a group.')
         df_log_na = self.df_log.copy()
 
         temp_value = 'NaFill'
@@ -304,12 +313,12 @@ class DataAnonymizer:
         self.df_log.loc[df_log_na['Redact'] == 'Secondary Suppression', 'Redact'] = 'Secondary Suppression'
         self.df_log.loc[:, 'RedactBreakdown'] = df_log_na['RedactBreakdown']
 
-        print('Complete review of secondary disclosure avoidance where review of one count of redacted category in a group.')
+        logger.info('Complete review of secondary disclosure avoidance where review of one count of redacted category in a group.')
         
         return self.df_log
         
     def cross_suppression(self):
-        print('Begin analysis if secondary redaction on aggregate levels need to be applied to original dataframe.')
+        logger.info('Begin analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         df_parent_redact = self.df_log[(self.df_log['Grouping'] > 0) & (self.df_log['RedactBinary'] == 1)]
         redact_parent_name = 'RedactParentBinary'
         df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
@@ -375,11 +384,11 @@ class DataAnonymizer:
         
 
         self.df_log['RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
-        print('Completion of analysis if secondary redaction on aggregate levels need to be applied to original dataframe.')
+        logger.info('Completion of analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         return self.df_log
     
     def apply_log(self):
-        print('Start applying log to given dataframe.')
+        logger.info('Start applying log to given dataframe.')
         if self.organization_columns[0] is not None:
             df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
@@ -390,13 +399,13 @@ class DataAnonymizer:
         # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
 
-        print('Finished applying log to given dataframe!')
+        logger.info('Finished applying log to given dataframe!')
         
         return self.df_redacted
     # New method to call the specified functions
     def get_log(self):
-        print('Pulling log from class.')
-        print('Log returned from class!')
+        logger.info('Pulling log from class.')
+        logger.info('Log returned from class!')
         return self.df_log
 
     def apply_anonymization(self):
