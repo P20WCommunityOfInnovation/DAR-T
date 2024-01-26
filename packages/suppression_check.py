@@ -136,7 +136,7 @@ class DataAnonymizer:
         return self.df_log
 
     def redact_user_requested_records(self):
-        logger.info('Seeing if user redact column exist.')
+        logger.info('Seeing if user redact column exists.')
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBinary'] = 1
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
@@ -148,7 +148,7 @@ class DataAnonymizer:
     def less_than_threshold_not_zero(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
         # has values less than 'minimum_threshold' and not equal to zero
-        logger.info('Redacting values are less than threshold and not zero.')
+        logger.info('Redacting values that are less than the threshold and not zero.')
         mask = (self.df_log[self.frequency] <= self.minimum_threshold) & (self.df_log[self.frequency] != 0)
 
         self.df_log.loc[mask, 'RedactBinary'] = 1
@@ -157,7 +157,7 @@ class DataAnonymizer:
         self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
         self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} and not zero'
 
-        logger.info('Completed redacting values less than threshold and not zero.')
+        logger.info('Completed redacting values less than the threshold and not zero.')
         # Return the updated dataframe
         return self.df_log
 
@@ -225,7 +225,7 @@ class DataAnonymizer:
 
     # Method to redact values in the dataframe that are the only value in the group
     def one_count_redacted(self):
-        logger.info('Start review is secondary disclosure avoidance is needed and begin application.') 
+        logger.info('Start review of if secondary disclosure avoidance is needed and begin application.') 
         # Filter rows where the value in the column specified by 'frequency' is less than 'minimum_threshold' but not zero
         df_redact_count = self.df_log[self.df_log['RedactBinary'] == 1]
         df_redact_count['Redacted'] = 1
@@ -318,7 +318,7 @@ class DataAnonymizer:
         return self.df_log
         
     def cross_suppression(self):
-        logger.info('Begin analysis if secondary redaction on aggregate levels need to be applied to original dataframe.')
+        logger.info('Begin analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         df_parent_redact = self.df_log[(self.df_log['Grouping'] > 0) & (self.df_log['RedactBinary'] == 1)]
         redact_parent_name = 'RedactParentBinary'
         df_parent_redact.rename(columns = {'RedactBinary':redact_parent_name}, inplace=True)
@@ -384,7 +384,7 @@ class DataAnonymizer:
         
 
         self.df_log['RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
-        logger.info('Completion of analysis if secondary redaction on aggregate levels need to be applied to original dataframe.')
+        logger.info('Completion of analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         return self.df_log
     
     def apply_log(self):
