@@ -100,12 +100,12 @@ class DataAnonymizer:
         if self.organization_columns[0] is not None:
             df_log_original =  pd.DataFrame(self.df[self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column])
             df_log_original['Grouping'] = grouping_value
-            df_log = pd.concat([df_log_original, df_dataframes])
+            df_log = pd.concat([df_dataframes, df_log_original])
             df_log.drop_duplicates(self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column, inplace=True)
         else:
             df_log_original =  pd.DataFrame(self.df[self.sensitive_columns +[self.frequency] + self.redact_column])
             df_log_original['Grouping'] = grouping_value
-            df_log = pd.concat([df_log_original, df_dataframes])
+            df_log = pd.concat([df_dataframes, df_log_original])
             df_log.drop_duplicates(self.sensitive_columns +[self.frequency] + self.redact_column, inplace=True)
         df_log.reset_index(drop=True, inplace=True)
         df_log['RedactBinary'] = 0
@@ -159,7 +159,7 @@ class DataAnonymizer:
         
         # Update a new column named 'Redact' with a message for the rows that meet the condition specified by the mask
         self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
-        self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} and not zero'
+        self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} or equal to and not zero'
 
         logger.info('Completed redacting values less than the threshold and not zero.')
         # Return the updated dataframe
@@ -384,15 +384,13 @@ class DataAnonymizer:
                     self.df_log.loc[mask, 'RedactBinary'] = 1
                     self.df_log.loc[mask, 'Redact'] = 'Secondary Suppression'
                     self.df_log.loc[mask, 'RedactBreakdown'] += ', Redacting based on aggregate level redaction'
-            
-        
 
-        self.df_log['RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
         logger.info('Completion of analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         return self.df_log
     
     def apply_log(self):
         logger.info('Start applying log to given dataframe.')
+        self.df_log['RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
         if self.organization_columns[0] is not None:
             df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
