@@ -1,4 +1,4 @@
-﻿Subgroup1,Subgroup2,Counts,UnderSuppress,OverSuppressed
+﻿Subgroup1,Subgroup2,Counts,OverlapRedacted,LessThanRedacted
 STEM,Certificate,10,0,1
 STEM,Associate,9,1,1
 STEM,Bachelor,20,0,0
