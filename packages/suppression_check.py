@@ -75,21 +75,32 @@ class DataAnonymizer:
         
         if frequency not in df.columns:
             raise KeyError(f"Frequency column '{frequency}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+     
+        #Validating frequency column values 
+        try:
+            pd.to_numeric(df[frequency])
+        except ValueError:
+            raise ValueError(f"All values in the frequency column '{frequency}' must be numeric or null.")
         
+        #Validating redact column 
         if redact_column and redact_column not in df.columns:
             raise KeyError(f"User specified redaction column '{redact_column}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
-        
-        #Validate data types where relevant
+        if redact_column:
+            try:
+                numeric_values = pd.to_numeric(df[redact_column])
+            except ValueError:
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains non-numeric and non-null values. Valid values are 0, 1, and null.")
+            
+            numeric_values = numeric_values[~numeric_values.isna()]
+
+            invalid_values = numeric_values[~numeric_values.isin([0,1])]
+
+            if not invalid_values.empty:
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains the following invalid numeric values: {invalid_values.unique()}. Please only include values of 0, 1, and null.")
+
+        #Validate minimum threshold input
         if minimum_threshold < 0:
             raise ValueError("Minimum threshold for redaction must be a positive number.")
-        
-        if frequency:
-            try:
-                pd.to_numeric(df[frequency])
-            except ValueError:
-                raise ValueError(f"All values in the frquency column '{frequency}' must be numeric or null.")
-        
-        #Need to write a check for redact_column containing only ones, zeroes, or no value. 
             
 
     def create_log(self):
