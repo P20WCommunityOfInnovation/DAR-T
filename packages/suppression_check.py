@@ -58,26 +58,26 @@ class DataAnonymizer:
     def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold):
         #The class currently supports only dataframes as an input. If this changes to support .csvs or other formats this check can be expanded. 
         if not isinstance(df, pd.DataFrame):
-            raise ValueError("Data object must be a DataFrame.")
+            raise TypeError("Data object must be a DataFrame.")
 
         #Validate that specified columns exist in the dataframe. Mostly checking for spelling errors from end user. 
         if parent_organization and parent_organization not in df.columns:
-            raise ValueError(f"Parent organization column '{parent_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+            raise KeyError(f"Parent organization column '{parent_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         if child_organization and child_organization not in df.columns:
-            raise ValueError(f"Child organization column '{child_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+            raise KeyError(f"Child organization column '{child_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
 
         for col in sensitive_columns:
             if col not in df.columns:
-                raise ValueError(f"Frequency column '{col}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+                raise KeyError(f"Frequency column '{col}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
 
         if not frequency:
-            raise ValueError("You must specify a frquency column containing counts.")
+            raise KeyError("You must specify a frquency column containing counts.")
         
         if frequency not in df.columns:
-            raise ValueError(f"Frequency column '{frequency}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+            raise KeyError(f"Frequency column '{frequency}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         
         if redact_column and redact_column not in df.columns:
-            raise ValueError(f"User specified redaction column '{redact_column}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+            raise KeyError(f"User specified redaction column '{redact_column}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         
         #Validate data types where relevant
         if minimum_threshold < 0:
