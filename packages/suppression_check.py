@@ -13,8 +13,8 @@ logger.addHandler(handler)
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column. 
     def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
-        #Validating user inputs
-        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold)
+        
+        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold) #Validating user inputs
 
         if (child_organization is None) & (parent_organization is None):
             organization_columns = None
@@ -60,7 +60,7 @@ class DataAnonymizer:
         if not isinstance(df, pd.DataFrame):
             raise TypeError("Data object must be a DataFrame.")
 
-        #Validate that specified columns exist in the dataframe. Mostly checking for spelling errors from end user. 
+        #Validate that specified columns exist in the dataframe and that all mandatory inputs are included. Mostly checking for spelling errors from end user. 
         if parent_organization and parent_organization not in df.columns:
             raise KeyError(f"Parent organization column '{parent_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         if child_organization and child_organization not in df.columns:
@@ -82,7 +82,7 @@ class DataAnonymizer:
         except ValueError:
             raise ValueError(f"All values in the frequency column '{frequency}' must be numeric or null.")
         
-        #Validating redact column 
+        #Validating redact column - includes check for invalid values in the column. 
         if redact_column and redact_column not in df.columns:
             raise KeyError(f"User specified redaction column '{redact_column}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         if redact_column:
