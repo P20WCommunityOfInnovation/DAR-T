@@ -89,14 +89,14 @@ class DataAnonymizer:
             try:
                 numeric_values = pd.to_numeric(df[redact_column])
             except ValueError:
-                raise ValueError(f"The user specified redact_column '{redact_column}' contains non-numeric and non-null values. Valid values are 0, 1, and null.")
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains non-numeric and non-null values. Valid values are 0 and 1.")
             
             numeric_values = numeric_values[~numeric_values.isna()]
 
             invalid_values = numeric_values[~numeric_values.isin([0,1])]
 
             if not invalid_values.empty:
-                raise ValueError(f"The user specified redact_column '{redact_column}' contains the following invalid numeric values: {invalid_values.unique()}. Please only include values of 0, 1, and null.")
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains the following invalid numeric values: {invalid_values.unique()}. Please only include values of 0 and 1.")
 
         #Validate minimum threshold input
         if minimum_threshold < 0:
