@@ -60,15 +60,26 @@ class DataAnonymizer:
         if not isinstance(df, pd.DataFrame):
             raise TypeError("Data object must be a DataFrame.")
 
-        #Validate that specified columns exist in the dataframe and that all mandatory inputs are included. Mostly checking for spelling errors from end user. 
+        ##Validate that specified columns exist in the dataframe and that all mandatory inputs are included. Mostly checking for spelling errors from end user. 
         if parent_organization and parent_organization not in df.columns:
             raise KeyError(f"Parent organization column '{parent_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
         if child_organization and child_organization not in df.columns:
             raise KeyError(f"Child organization column '{child_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
 
-        for col in sensitive_columns:
+
+        #Validating presenence of all senstive columns 
+        if isinstance(sensitive_columns, str):
+            sensitive_columns_list = [sensitive_columns]
+        else:
+            sensitive_columns_list = sensitive_columns
+
+        missing_sensitive_columns = []
+        for col in sensitive_columns_list:
             if col not in df.columns:
-                raise KeyError(f"Frequency column '{col}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+                missing_sensitive_columns.append(col)
+        
+        if missing_sensitive_columns:
+                raise KeyError(f"Sensitive columns '{missing_sensitive_columns}' do not exist in the DataFrame. Verify you spelled the column names correctly.")
 
         if not frequency:
             raise KeyError("You must specify a frquency column containing counts.")
