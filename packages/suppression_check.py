@@ -11,8 +11,11 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 class DataAnonymizer:
-    # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns
+    # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column. 
     def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
+        
+        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold) #Validating user inputs
+
         if (child_organization is None) & (parent_organization is None):
             organization_columns = None
         elif (parent_organization is not None) & (child_organization is None):
@@ -51,6 +54,65 @@ class DataAnonymizer:
         self.parent_organization = parent_organization
         self.child_organization = child_organization
         
+
+    def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold):
+        #The class currently supports only dataframes as an input. If this changes to support .csvs or other formats this check can be expanded. 
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("Data object must be a DataFrame.")
+
+        ##Validate that specified columns exist in the dataframe and that all mandatory inputs are included. Mostly checking for spelling errors from end user. 
+        if parent_organization and parent_organization not in df.columns:
+            raise KeyError(f"Parent organization column '{parent_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+        if child_organization and child_organization not in df.columns:
+            raise KeyError(f"Child organization column '{child_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+
+
+        #Validating presenence of all senstive columns 
+        if isinstance(sensitive_columns, str):
+            sensitive_columns_list = [sensitive_columns]
+        else:
+            sensitive_columns_list = sensitive_columns
+
+        missing_sensitive_columns = []
+        for col in sensitive_columns_list:
+            if col not in df.columns:
+                missing_sensitive_columns.append(col)
+        
+        if missing_sensitive_columns:
+                raise KeyError(f"Sensitive columns '{missing_sensitive_columns}' do not exist in the DataFrame. Verify you spelled the column names correctly.")
+
+        if not frequency:
+            raise KeyError("You must specify a frquency column containing counts.")
+        
+        if frequency not in df.columns:
+            raise KeyError(f"Frequency column '{frequency}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+     
+        #Validating frequency column values 
+        try:
+            pd.to_numeric(df[frequency])
+        except ValueError:
+            raise ValueError(f"All values in the frequency column '{frequency}' must be numeric or null.")
+        
+        #Validating redact column - includes check for invalid values in the column. 
+        if redact_column and redact_column not in df.columns:
+            raise KeyError(f"User specified redaction column '{redact_column}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
+        if redact_column:
+            try:
+                numeric_values = pd.to_numeric(df[redact_column])
+            except ValueError:
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains non-numeric and non-null values. Valid values are 0 and 1.")
+            
+            numeric_values = numeric_values[~numeric_values.isna()]
+
+            invalid_values = numeric_values[~numeric_values.isin([0,1])]
+
+            if not invalid_values.empty:
+                raise ValueError(f"The user specified redact_column '{redact_column}' contains the following invalid numeric values: {invalid_values.unique()}. Please only include values of 0 and 1.")
+
+        #Validate minimum threshold input
+        if minimum_threshold < 0:
+            raise ValueError("Minimum threshold for redaction must be a positive number.")
+            
 
     def create_log(self):
         logger.info('Creating log!')
