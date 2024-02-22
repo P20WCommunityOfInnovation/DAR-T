@@ -12,9 +12,9 @@ logger.addHandler(handler)
 
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column. 
-    def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10):
+    def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10, redact_zero = False):
         
-        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold) #Validating user inputs
+        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold, redact_zero) #Validating user inputs
 
         if (child_organization is None) & (parent_organization is None):
             organization_columns = None
@@ -53,9 +53,10 @@ class DataAnonymizer:
         self.minimum_threshold = minimum_threshold
         self.parent_organization = parent_organization
         self.child_organization = child_organization
+        self.redact_zero = redact_zero
         
 
-    def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold):
+    def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold, redact_zero):
         #The class currently supports only dataframes as an input. If this changes to support .csvs or other formats this check can be expanded. 
         if not isinstance(df, pd.DataFrame):
             raise TypeError("Data object must be a DataFrame.")
@@ -112,6 +113,10 @@ class DataAnonymizer:
         #Validate minimum threshold input
         if minimum_threshold < 0:
             raise ValueError("Minimum threshold for redaction must be a positive number.")
+
+        #Validate redact_zero input
+        if redact_zero not in [True, False]:
+            raise ValueError("Value for redact_zero should be True or False, not {}. Please only use True or False without quotation marks.".format(redact_zero))
             
 
     def create_log(self):
@@ -202,20 +207,28 @@ class DataAnonymizer:
         self.df_log = self.df_log.drop('UserRedact', axis=1)
         logger.info('Completed review if user redact column exists.')
         return self.df_log
-    # Method to redact values in the dataframe that are less than a minimum threshold but not zero
-    def less_than_threshold_not_zero(self):
+    # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)
+    def less_than_threshold(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
-        # has values less than 'minimum_threshold' and not equal to zero
-        logger.info('Redacting values that are less than the threshold and not zero.')
-        mask = (self.df_log[self.frequency] <= self.minimum_threshold) & (self.df_log[self.frequency] != 0)
+        # has values less than 'minimum_threshold'
+        # and also identify rows equal to 0 if correct parameter was passed in
+        if self.redact_zero == False:
+            logger.info('Redacting values that are less than the threshold and not zero.')
+            mask = (self.df_log[self.frequency] <= self.minimum_threshold) & (self.df_log[self.frequency] != 0)
+        else:
+            logger.info('Redacting values that are less than the threshold or equal to zero.')
+            mask = (self.df_log[self.frequency] <= self.minimum_threshold) | (self.df_log[self.frequency] == 0)
 
         self.df_log.loc[mask, 'RedactBinary'] = 1
         
         # Update a new column named 'Redact' with a message for the rows that meet the condition specified by the mask
         self.df_log.loc[mask, 'Redact'] = 'Primary Suppression'
-        self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than {self.minimum_threshold} or equal to and not zero'
-
-        logger.info('Completed redacting values less than the threshold and not zero.')
+        if self.redact_zero == False:
+            self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than or equal to {self.minimum_threshold} and not equal to zero'
+            logger.info('Completed redacting values less than or equal to the threshold and not zero.')
+        else:
+            self.df_log.loc[mask, 'RedactBreakdown'] += f', Less Than or equal to {self.minimum_threshold} or zero'
+            logger.info('Completed redacting values less than or equal to the threshold or equal to zero.')
         # Return the updated dataframe
         return self.df_log
 
@@ -473,8 +486,8 @@ class DataAnonymizer:
         # Call redact_user_requested_records
         self.redact_user_requested_records()
         
-        # Call less_than_threshold_not_zero
-        self.less_than_threshold_not_zero()
+        # Call less_than_threshold
+        self.less_than_threshold()
         
         # Call one_count_redacted
         self.one_count_redacted()

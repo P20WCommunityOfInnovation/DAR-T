@@ -77,9 +77,9 @@ Represents the steps taken to properly redact the information within the data se
 #### redact_user_requested_records()
 
 Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column with a `1`, the redact user requested records method will update its status to reflect user-requested redaction.
-#### less_than_threshold_not_zero()
+#### less_than_threshold()
 
-Applies primary suppression to records where the frequency is less than the specified minimum threshold but not zero. The less than threshold not zero updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
+Applies primary suppression to records where the frequency is less than or equal to the specified minimum threshold and also zero depending on the user input. The less than threshold updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
 
 #### redact_threshold()
 
