@@ -468,9 +468,7 @@ class DataAnonymizer:
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
 
         if self.redact_column is not None:
-            print(columns)
             columns = columns + self.redact_column
-            print(columns)
         
         df_redacted = df_redacted[columns]
         # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
