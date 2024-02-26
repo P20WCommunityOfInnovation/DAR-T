@@ -58,8 +58,6 @@ def test_redact_user_requested_records(sample_dataframe, redact_column):
     anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
     
     result_df = anonymizer.apply_anonymization()
-
-    print(result_df[(result_df['UserRedact'] == 1) & (result_df['Redact'] == 'User-requested redaction')])
     
     assert (result_df.loc[(result_df['UserRedact'] == 1), 'Redact'] == 'User-requested redaction').all()
 
