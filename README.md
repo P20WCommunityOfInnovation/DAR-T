@@ -67,7 +67,9 @@ Represents the steps taken to properly redact the information within the data se
 
 `Less Than 10 and not zero` - The value was less than the threshold, and the value is not zero.
 
-`One count redacted leading to secondary suppression` - Only one value in the set or the sum of the values was less than the threshold was redacted, so this value needed to be redacted.
+`Sum of values less than threshold` - The sum of values in the set was less than the redacted threshold, so this value needed to be redacted.
+
+`One count redacted leading to secondary suppression` - Only one value in the set was redacted, so this value needed to be redacted.
 
 `Redacting zeroes or other remaining values missed in one count function` - If the redaction in the `One count redacted leading to secondary suppression` leads to values still being represented through counter mathematics.
 
