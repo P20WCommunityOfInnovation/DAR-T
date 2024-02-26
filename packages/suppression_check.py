@@ -204,6 +204,7 @@ class DataAnonymizer:
 
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'Redact'] = 'User-requested redaction'
         self.df_log.loc[(self.df_log["UserRedact"] == 1), 'RedactBreakdown'] += ', User-requested redaction'
+        self.df_log = self.df_log.drop('UserRedact', axis=1)
         logger.info('Completed review if user redact column exists.')
         return self.df_log
     # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)
@@ -465,6 +466,10 @@ class DataAnonymizer:
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
+
+        if self.redact_column is not None:
+            columns = columns + [self.redact_column]
+        
         df_redacted = df_redacted[columns]
         # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
