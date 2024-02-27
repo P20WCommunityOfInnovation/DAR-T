@@ -150,13 +150,12 @@ class DataAnonymizer:
         self.df.loc[:, 'Grouping'] = grouping_value
         df_log = pd.concat([df_dataframes, self.df])
 
-        display(df_log)
         if self.organization_columns[0] is not None and self.redact_column is not None:
-            duplicate_columns = self.organization_columns + self.sensitive_columns + [self.frequency]  + self.redact_column
+            duplicate_columns = self.organization_columns + self.sensitive_columns + [self.frequency]  + [self.redact_column]
         elif self.organization_columns[0] is not None and self.redact_column is None:
             duplicate_columns = self.organization_columns + self.sensitive_columns +[self.frequency]
         elif self.organization_columns[0] is None and self.redact_column is not None:
-            duplicate_columns = self.sensitive_columns +[self.frequency]  + self.redact_column
+            duplicate_columns = self.sensitive_columns +[self.frequency]  + [self.redact_column]
         elif self.organization_columns[0] is None and self.redact_column is None:
             duplicate_columns = self.sensitive_columns + [self.frequency]
         else:
@@ -164,7 +163,6 @@ class DataAnonymizer:
             print(self.organization_columns)
 
         df_log.drop_duplicates(duplicate_columns, inplace=True)
-        display(df_log)
         df_log.reset_index(drop=True, inplace=True)
         df_log.loc[:, 'RedactBinary'] = 0
         df_log.loc[:, 'Redact'] = 'Not Redacted'
@@ -485,10 +483,8 @@ class DataAnonymizer:
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
-        print(columns)
         if self.redact_column is not None:
-            columns = columns + self.redact_column
-        print(columns)
+            columns = columns + [self.redact_column]
         df_redacted = df_redacted[columns]
 
         if self.redact_value is not None:
