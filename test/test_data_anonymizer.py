@@ -50,16 +50,16 @@ def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
         assert required_columns.issubset(set(log_df.columns))
 
 @pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction')])
-# def test_redact_user_requested_records(sample_dataframe, redact_column):
-#     """
-#     Test if 'User-requested redaction' is added to all columns where user specifies redaction
-#     """
+def test_redact_user_requested_records(sample_dataframe, redact_column):
+    """
+    Test if 'User-requested redaction' is added to all columns where user specifies redaction
+    """
 
-#     anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
+    anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
     
-#     result_df = anonymizer.apply_anonymization()
+    result_df = anonymizer.apply_anonymization()
     
-#     assert (result_df.loc[(result_df[redact_column] == 1), 'Redact'] == 'User-requested redaction').all()
+#    assert (result_df.loc[(result_df[redact_column] == 1), 'Redact'] == 'User-requested redaction').all()
 
 #     assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
 
