@@ -12,7 +12,7 @@ logger.addHandler(handler)
 
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column. 
-    def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10, redact_zero = False):
+    def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10, redact_zero=False, redact_value=None):
         
         self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold, redact_zero) #Validating user inputs
 
@@ -32,22 +32,11 @@ class DataAnonymizer:
         self.organization_columns = list(organization_columns) if isinstance(organization_columns, (list, tuple)) else [organization_columns]
         self.sensitive_columns = list(sensitive_columns) if isinstance(sensitive_columns, (list, tuple)) else [sensitive_columns]
         self.sensitive_combinations = sorted([combo for i in range(1, len(self.sensitive_columns) + 1) for combo in combinations(self.sensitive_columns, i)], key=len, reverse=True)
+        self.redact_column = redact_column
         
         # Rename the user supplied redact column to "UserRedact"
-        if redact_column is not None:
-            self.df.rename({redact_column: "UserRedact"}, axis = 1, inplace=True)
-            redact_column = 'UserRedact'
-        else:
-            self.df.loc[:, 'UserRedact'] = 0
-        
-        # Check the type of organization_columns and store it as an instance variable
-        if redact_column is None:
-            logger.info('Redact is empty or not included')  # Display a message if organization_columns is None
-            self.redact_column = ['UserRedact']  # Initialize an empty list
-        elif isinstance(redact_column, str):
-            self.redact_column = [redact_column]  # Convert a single string to a list with one item
-        else:
-            self.redact_column = redact_column  # Store the provided list
+        if self.redact_column is None:
+            logger.info('Redact is empty or not included')  # Display a message if redact_column is None
         
         self.frequency = frequency
         self.minimum_threshold = minimum_threshold
@@ -126,46 +115,46 @@ class DataAnonymizer:
         if self.organization_columns[0] is not None:
             for organization_column in self.organization_columns:
                 for sensitive_combination in self.sensitive_combinations:
-                    df_grouped = self.df.groupby([organization_column] + list(sensitive_combination)  + ['UserRedact'])[self.frequency].sum().reset_index()
+                    df_grouped = self.df.groupby([organization_column] + list(sensitive_combination))[self.frequency].sum().reset_index()
                     df_grouped.loc[:, 'Grouping'] = grouping_value
                     grouping_value += 1
                     df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-                    df_grouped_min = df_not_redacted.groupby([organization_column]  + ['UserRedact'])[self.frequency].min().reset_index()
+                    df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
                     df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-                    df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column] + ['UserRedact'], how='left')
+                    df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
                     df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
         if self.parent_organization is not None:
-            df_grouped = self.df.groupby([self.parent_organization]  + ['UserRedact'])[self.frequency].sum().reset_index()
+            df_grouped = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
             df_grouped.loc[:, 'Grouping'] = grouping_value
             grouping_value += 1
             df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-            df_grouped_min = df_not_redacted.groupby(['Grouping']  + ['UserRedact'])[self.frequency].min().reset_index()
+            df_grouped_min = df_not_redacted.groupby(['Grouping'])[self.frequency].min().reset_index()
             df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping']  + ['UserRedact'], how='left')
+            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
             df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
             
         for sensitive_combination in self.sensitive_combinations:
             list_combination = list(sensitive_combination)
-            df_grouped = self.df.groupby(list_combination + ['UserRedact'])[self.frequency].sum().reset_index()
+            df_grouped = self.df.groupby(list_combination)[self.frequency].sum().reset_index()
             df_grouped.loc[:, 'Grouping'] = grouping_value
             grouping_value += 1
             df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
             df_not_redacted = df_dataframes[df_dataframes[self.frequency] > self.minimum_threshold]
             if (list_combination != self.sensitive_columns) | (len(self.sensitive_columns) == 1) :
-                df_grouped_min = df_not_redacted.groupby(['Grouping'] + list_combination + ['UserRedact'])[self.frequency].min().reset_index()
+                df_grouped_min = df_not_redacted.groupby(['Grouping'] + list_combination)[self.frequency].min().reset_index()
                 string_combination = ''.join(list_combination)
                 df_grouped_min.rename(columns={self.frequency: "MinimumValue" + string_combination}, inplace=True)
-                df_dataframes = df_dataframes.merge(df_grouped_min, on= ['Grouping'] + list_combination + ['UserRedact'], how='left')
+                df_dataframes = df_dataframes.merge(df_grouped_min, on= ['Grouping'] + list_combination, how='left')
         if self.organization_columns[0] is not None:
             df_log_original =  pd.DataFrame(self.df[self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column])
             df_log_original.loc[:, 'Grouping'] = grouping_value
             df_log = pd.concat([df_dataframes, df_log_original])
-            df_log.drop_duplicates(self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column, inplace=True)
+            df_log.drop_duplicates(self.organization_columns + self.sensitive_columns +[self.frequency], inplace=True)
         else:
             df_log_original =  pd.DataFrame(self.df[self.sensitive_columns +[self.frequency] + self.redact_column])
             df_log_original.loc[:, 'Grouping'] = grouping_value
             df_log = pd.concat([df_dataframes, df_log_original])
-            df_log.drop_duplicates(self.sensitive_columns +[self.frequency] + self.redact_column, inplace=True)
+            df_log.drop_duplicates(self.sensitive_columns +[self.frequency], inplace=True)
         df_log.reset_index(drop=True, inplace=True)
         df_log.loc[:, 'RedactBinary'] = 0
         df_log.loc[:, 'Redact'] = 'Not Redacted'
@@ -180,10 +169,14 @@ class DataAnonymizer:
         self.df_log = df_log.copy()
     
         
-        if self.organization_columns[0] is not None:
+        if self.organization_columns[0] is not None and self.redact_column is not None:
             df_log =  pd.DataFrame(self.df_log[self.organization_columns + self.sensitive_columns +[self.frequency] + self.redact_column])
+        elif self.organization_columns[0] is not None and self.redact_column is None:
+            df_log =  pd.DataFrame(self.df_log[self.organization_columns + self.sensitive_columns +[self.frequency]])
+        elif self.organization_columns[0] is None and self.redact_column is not None:
+            df_log =  pd.DataFrame(self.df_log[self.sensitive_columns +[self.frequency]] + self.redact_column)
         else:
-            df_log =  pd.DataFrame(self.df_log[self.sensitive_columns +[self.frequency] + self.redact_column])
+            df_log =  pd.DataFrame(self.df_log[self.sensitive_columns +[self.frequency]])
 
         df_log.drop_duplicates(inplace=True)
         
@@ -209,9 +202,9 @@ class DataAnonymizer:
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
         
-        self.data_logger((self.df_log["UserRedact"] == 1), 'User-requested redaction', 'User-requested redaction')
+        self.data_logger((self.df_log[self.redact_column] == 1), 'User-requested redaction', 'User-requested redaction')
         
-        self.df_log = self.df_log.drop('UserRedact', axis=1)
+        self.df_log = self.df_log.drop(self.redact_column, axis=1)
         logger.info('Completed review if user redact column exists.')
         return self.df_log
     # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)
@@ -481,11 +474,17 @@ class DataAnonymizer:
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
-
+        print(columns)
         if self.redact_column is not None:
             columns = columns + self.redact_column
-        
+        print(columns)
         df_redacted = df_redacted[columns]
+
+        if redact_value is not None:
+            datatype_of_variable = type(redact_value)
+            df_redacted[self.frequency] = df_redacted[self.frequency].astype(datatype_of_variable)
+            df_redacted.loc[df_redacted['RedactBinary'] == 1, self.frequency] = redact_value
+        
         # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
 
