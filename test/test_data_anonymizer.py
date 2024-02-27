@@ -42,12 +42,12 @@ def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
     if anonymizer.organization_columns[0] is not None:
         log_df = anonymizer.create_log()
         required_columns = {'Grouping', 'MinimumValue', 'MinimumValueSubgroup1', 'MinimumValueSubgroup2', 'RedactBinary', 'Redact', 'RedactBreakdown'}
-#        assert required_columns.issubset(set(log_df.columns))
+        assert required_columns.issubset(set(log_df.columns))
     
     if anonymizer.organization_columns[0] is None:
         log_df = anonymizer.create_log()
         required_columns = {'Grouping', 'MinimumValueSubgroup1', 'MinimumValueSubgroup2', 'RedactBinary', 'Redact', 'RedactBreakdown'}
-#        assert required_columns.issubset(set(log_df.columns))
+        assert required_columns.issubset(set(log_df.columns))
 
 @pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction')])
 def test_redact_user_requested_records(sample_dataframe, redact_column):
@@ -59,9 +59,9 @@ def test_redact_user_requested_records(sample_dataframe, redact_column):
     
     result_df = anonymizer.apply_anonymization()
     
-#    assert (result_df.loc[(result_df[redact_column] == 1), 'Redact'] == 'User-requested redaction').all()
+    assert (result_df.loc[(result_df[redact_column] == 1), 'Redact'] == 'User-requested redaction').all()
 
-#     assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
+    assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
 
 
 @pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
@@ -75,11 +75,11 @@ def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_
     result_df = anonymizer.less_than_threshold()
 
     #Test all values less than or equal to minimum threshold are marked for Primary supression 
-#    assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'Redact'] == 'Primary Suppression').all()
+    assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'Redact'] == 'Primary Suppression').all()
     #Test that none of the values where minimum threshold are equal to zero are marked for Primary Supression 
-#    assert not (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] == 0) ), 'Redact'] == 'Primary Suppression').all()
+    assert not (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] == 0) ), 'Redact'] == 'Primary Suppression').all()
     #Test that Redact breakdown contains an indicator of why the values were redacted
-#    assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} and not equal to zero")).all()
+    assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} and not equal to zero")).all()
 
 
 @pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column, redact_zero", [(lazy_fixture('sample_data'), None, None, None, True), (lazy_fixture('sample_data'), None, None, 'UserRedaction', True), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None, True)])
@@ -92,11 +92,13 @@ def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org
     anonymizer.redact_user_requested_records()
     result_df = anonymizer.less_than_threshold()
 
-    #Test all values less than or equal to minimum threshold, including zero, are marked for Primary supression. 
-#    assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'Redact'] == 'Primary Suppression').all()
+    #Test all values less than or equal to minimum threshold, including zero, are marked for Primary supression.
+
+    assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'Redact'] == 'Primary Suppression').all()
 
     #Test that Redact breakdown contains an indicator of why the values were redacted, and that it references zeroes being applicable for redaction. 
-#    assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} or zero")).all()
+
+    assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} or zero")).all()
 
 
 # I think the below currently does not work as we set RedactBinary to 1 in redact_threshold() when the redaction is applied. I need to think of a way to check for proper redaction of overlap without using RedactBinary. 
