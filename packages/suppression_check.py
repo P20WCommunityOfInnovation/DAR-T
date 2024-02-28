@@ -120,7 +120,7 @@ class DataAnonymizer:
             if df.duplicated(subset=[child_organization] + sensitive_columns).any():
                 raise ValueError("Duplicates are present in the child organization columns and sensitive columns")
         else:
-            if df.duplicated(subset=list(sensitive_combination)).any():
+            if df.duplicated(subset=list(sensitive_columns)).any():
                 raise ValueError("Duplicates are present in the sensitive columns")
             
 
