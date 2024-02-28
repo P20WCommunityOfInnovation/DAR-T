@@ -1,0 +1,35 @@
+name: Lint & Format
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10' # Choose your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black nbstripout
+        # Add any other dependencies your script requires
+
+    - name: Strip output from Jupyter Notebooks (if applicable)
+      run: nbstripout **/*.ipynb
+
+    - name: Lint with flake8
+      run: flake8 ./packages/suppression_check.py --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Format Python code with black
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: black ./packages/suppression_check.py --check --diff --color
