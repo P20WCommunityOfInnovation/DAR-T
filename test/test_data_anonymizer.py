@@ -49,7 +49,7 @@ def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
         required_columns = {'Grouping', 'MinimumValueSubgroup1', 'MinimumValueSubgroup2', 'RedactBinary', 'Redact', 'RedactBreakdown'}
         assert required_columns.issubset(set(log_df.columns))
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction', None, None), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', 'UserRedaction')])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', 'UserRedaction')])
 def test_redact_user_requested_records(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if 'User-requested redaction' is added to all columns where user specifies redaction

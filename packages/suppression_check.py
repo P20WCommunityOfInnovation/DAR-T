@@ -190,26 +190,23 @@ class DataAnonymizer:
         return self.df_log
 
     def data_logger(self, filter_value, redact_name, redact_breakdown_name):
-        self.df_log.loc[filter_value, 'RedactBinary'] = 1
 
-        self.df_log.loc[filter_value, 'Redact'] = redact_name
-        self.df_log.loc[filter_value, 'RedactBreakdown'] += ', '
+        self.df_log.loc[filter_value & (self.df_log['Redact'] != 'User-requested redaction'), 'RedactBreakdown'] += ', '
         self.df_log.loc[:, 'RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
-        self.df_log.loc[filter_value, 'RedactBreakdown'] += redact_breakdown_name
+        self.df_log.loc[filter_value & (self.df_log['Redact'] != 'User-requested redaction'), 'RedactBreakdown'] += redact_breakdown_name
+        self.df_log.loc[filter_value & (self.df_log['RedactBinary'] != 1), 'Redact'] = redact_name
+        self.df_log.loc[filter_value &  (self.df_log['RedactBinary'] != 1), 'RedactBinary'] = 1
 
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
-        
+        print(self.redact_column)
         if self.redact_column is not None:
             self.data_logger((self.df_log[self.redact_column] == 1), 'User-requested redaction', 'User-requested redaction')
-        
+
             self.df_log = self.df_log.drop(self.redact_column, axis=1)
             
         logger.info('Completed review if user redact column exists.')
         return self.df_log
-        if self.redact_column is not None:
-            
-            self.df_log = self.df_log.drop(self.redact_column, axis=1)
     # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)
     def less_than_threshold(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
@@ -481,15 +478,18 @@ class DataAnonymizer:
     
     def apply_log(self):
         logger.info('Start applying log to given dataframe.')
-        self.df_log.loc[:, 'RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
+        
         if self.organization_columns[0] is not None:
             df_redacted =  self.df.merge(self.df_log, on = self.organization_columns + self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.organization_columns + self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
+        print(list(df_redacted))
         if self.redact_column is not None:
+            print(columns)
             columns = columns + [self.redact_column]
+        print(columns)
         df_redacted = df_redacted[columns]
 
         if self.redact_value is not None:
