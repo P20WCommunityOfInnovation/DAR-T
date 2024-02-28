@@ -200,9 +200,11 @@ class DataAnonymizer:
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
         
-        self.data_logger((self.df_log[self.redact_column] == 1), 'User-requested redaction', 'User-requested redaction')
+        if self.redact_column is not None:
+            self.data_logger((self.df_log[self.redact_column] == 1), 'User-requested redaction', 'User-requested redaction')
         
-        self.df_log = self.df_log.drop(self.redact_column, axis=1)
+            self.df_log = self.df_log.drop(self.redact_column, axis=1)
+            
         logger.info('Completed review if user redact column exists.')
         return self.df_log
     # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)

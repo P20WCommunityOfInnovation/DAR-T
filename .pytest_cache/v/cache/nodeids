@@ -16,6 +16,8 @@
   "test/test_data_anonymizer.py::test_less_than_threshold[sample_data-None-None-UserRedaction]",
   "test/test_data_anonymizer.py::test_less_than_threshold[sample_data-ParentEntity-ChildEntity-None]",
   "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-None]",
+  "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-UserRedaction0]",
+  "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-UserRedaction1]",
   "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-UserRedaction]",
   "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-ParentEntity-ChildEntity-None]",
   "test/test_data_anonymizer.py::test_less_than_threshold_redact_zero[sample_data-None-None-None-True]",

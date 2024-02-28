@@ -1,1 +1,3 @@
-{}
+{
+  "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-UserRedaction]": true
+}
