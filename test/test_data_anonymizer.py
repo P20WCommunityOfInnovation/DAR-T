@@ -49,13 +49,13 @@ def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
         required_columns = {'Grouping', 'MinimumValueSubgroup1', 'MinimumValueSubgroup2', 'RedactBinary', 'Redact', 'RedactBreakdown'}
         assert required_columns.issubset(set(log_df.columns))
 
-@pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction')])
-def test_redact_user_requested_records(sample_dataframe, redact_column):
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction', None, None), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', 'UserRedaction')])
+def test_redact_user_requested_records(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if 'User-requested redaction' is added to all columns where user specifies redaction
     """
 
-    anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
+    anonymizer = DataAnonymizer(sample_dataframe, parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
     
     result_df = anonymizer.apply_anonymization()
 

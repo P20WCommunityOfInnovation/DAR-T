@@ -26,6 +26,8 @@
   "test/test_data_anonymizer.py::test_redact_threshold[sample_data-None-None-None-True]",
   "test/test_data_anonymizer.py::test_redact_threshold[sample_data-None-None-UserRedaction-True]",
   "test/test_data_anonymizer.py::test_redact_threshold[sample_data-ParentEntity-ChildEntity-None-True]",
+  "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-ParentEntity-ChildEntity-UserRedaction]",
+  "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-UserRedaction-None-None]",
   "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-UserRedaction]",
   "test/test_data_anonymizer.py::test_validate_input_data_type_check",
   "test/test_data_anonymizer.py::test_validate_input_df_check",
