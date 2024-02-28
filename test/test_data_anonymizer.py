@@ -33,7 +33,7 @@ def test_validate_input_key_error_checks(sample_data):
         DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='fake_user_redact')
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None),  (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
     """ Test that the create_log function adds in the columns required for the rest of the class to work."""
 
@@ -64,7 +64,7 @@ def test_redact_user_requested_records(sample_dataframe, parent_org, child_org, 
     assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test that values less than threshold are properly redacted
@@ -82,7 +82,7 @@ def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_
     assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} and not equal to zero")).all()
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column, redact_zero", [(lazy_fixture('sample_data'), None, None, None, True), (lazy_fixture('sample_data'), None, None, 'UserRedaction', True), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None, True)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column, redact_zero", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None, True)])
 def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org, redact_column, redact_zero):
     """
     Test that values less than threshold are properly redacted
@@ -122,7 +122,7 @@ def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org
 
 ###Functional tests###
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_apply_anonymization_return_dataframe_with_redact_column(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if 'Redact' column is added to the DataFrame.
@@ -132,7 +132,7 @@ def test_apply_anonymization_return_dataframe_with_redact_column(sample_datafram
     result_df = anonymizer.apply_anonymization()
     assert 'Redact' in result_df.columns
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if at least two rows per sensitive column are redacted.
