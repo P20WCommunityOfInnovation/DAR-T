@@ -207,6 +207,9 @@ class DataAnonymizer:
             
         logger.info('Completed review if user redact column exists.')
         return self.df_log
+        if self.redact_column is not None:
+            
+            self.df_log = self.df_log.drop(self.redact_column, axis=1)
     # Method to redact values in the dataframe that are less than a minimum threshold (possibly including 0)
     def less_than_threshold(self):
         # Create a boolean mask that identifies rows where the column specified by 'frequency'
