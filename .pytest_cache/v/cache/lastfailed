@@ -1,1 +1,20 @@
-{}
+{
+  "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-UserRedaction]": true,
+  "test/test_data_anonymizer.py::test_validate_input_data_type_check": true,
+  "test/test_data_anonymizer.py::test_validate_input_key_error_checks": true,
+  "test/test_data_anonymizer.py::test_create_log[sample_data-None-None-None]": true,
+  "test/test_data_anonymizer.py::test_create_log[sample_data-ParentEntity-ChildEntity-None]": true,
+  "test/test_data_anonymizer.py::test_redact_user_requested_records[sample_data-UserRedaction-None-None]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-None]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-None-None-UserRedaction]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_no_redact_zero[sample_data-ParentEntity-ChildEntity-None]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_redact_zero[sample_data-None-None-None-True]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_redact_zero[sample_data-None-None-UserRedaction-True]": true,
+  "test/test_data_anonymizer.py::test_less_than_threshold_redact_zero[sample_data-ParentEntity-ChildEntity-None-True]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_return_dataframe_with_redact_column[sample_data-None-None-None]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_return_dataframe_with_redact_column[sample_data-None-None-UserRedaction]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_return_dataframe_with_redact_column[sample_data-ParentEntity-ChildEntity-None]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column[sample_data-None-None-None]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column[sample_data-None-None-UserRedaction]": true,
+  "test/test_data_anonymizer.py::test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column[sample_data-ParentEntity-ChildEntity-None]": true
+}

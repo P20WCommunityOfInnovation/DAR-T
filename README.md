@@ -25,7 +25,7 @@ The script uses:
 Pandas for data manipulation (pd)
 
 ### DataAnonymizer Class
-#### __init__(df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10)
+#### __init__(df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10, redact_zero=False, redact_value=None)
 `df`: Initializes the DataAnonymizer object with a data frame df.
 
 `parent_organization`: Parent organization column name.
@@ -39,6 +39,10 @@ Pandas for data manipulation (pd)
 `redact_column`: Column to apply redaction.
 
 `minimum_threshold`: The minimum threshold for redaction.
+
+`redact_zero`: User can choose to redact zero or not.
+
+`redact_value`: User can select a replacement for redacted values in the frequency column. 
 
 #### create_log()
 
@@ -75,10 +79,18 @@ Represents the steps taken to properly redact the information within the data se
 
 `Redacting based on aggregate level redaction` - Using the aggregates of the sensitive columns or the organization columns leads to the suppression being applied on the original counts. 
 
+#### data_logger(filter_value, redact_name, redact_breakdown_name)
+
+Designed to update a logging DataFrame (df_log) within a class based on specific conditions. This method is particularly useful for managing and documenting changes in data access or visibility controls, especially in scenarios where data redaction is necessary for privacy or security reasons. By systematically updating the DataFrame, the data_logger method aids in maintaining a clear audit trail of redactions and their justifications within the dataset.
 
 #### redact_user_requested_records()
 
 Specifically redacts records as per user requests. If a record is marked for redaction in the 'UserRedact' column with a `1`, the redact user requested records method will update its status to reflect user-requested redaction.
+
+`filter_value`: This parameter is used to filter or select rows in the DataFrame where updates will be applied.
+`redact_name`: A string value that will be assigned to the 'Redact' column of the DataFrame for rows matching the filter_value.
+`redact_breakdown_name`: A string that will be appended to the 'RedactBreakdown' column for rows matching the filter_value.
+
 #### less_than_threshold()
 
 Applies primary suppression to records where the frequency is less than or equal to the specified minimum threshold and also zero depending on the user input. The less than threshold updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.

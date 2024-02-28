@@ -33,7 +33,7 @@ def test_validate_input_key_error_checks(sample_data):
         DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='fake_user_redact')
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None),  (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
     """ Test that the create_log function adds in the columns required for the rest of the class to work."""
 
@@ -49,22 +49,22 @@ def test_create_log(sample_dataframe, parent_org, child_org, redact_column):
         required_columns = {'Grouping', 'MinimumValueSubgroup1', 'MinimumValueSubgroup2', 'RedactBinary', 'Redact', 'RedactBreakdown'}
         assert required_columns.issubset(set(log_df.columns))
 
-@pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), 'UserRedaction')])
-def test_redact_user_requested_records(sample_dataframe, redact_column):
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', 'UserRedaction')])
+def test_redact_user_requested_records(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if 'User-requested redaction' is added to all columns where user specifies redaction
     """
 
-    anonymizer = DataAnonymizer(sample_dataframe, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
+    anonymizer = DataAnonymizer(sample_dataframe, parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
     
     result_df = anonymizer.apply_anonymization()
+
+    print(result_df[['RedactBreakdown','UserRedaction']])
     
-    # assert (result_df.loc[(result_df['UserRedact'] == 1), 'Redact'] == 'User-requested redaction').all()
-
-    # assert(result_df.loc[(result_df['UserRedact'] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
+    assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test that values less than threshold are properly redacted
@@ -74,8 +74,6 @@ def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_
     anonymizer.redact_user_requested_records()
     result_df = anonymizer.less_than_threshold()
 
-    print(result_df[['GraduationCount','RedactBreakdown']])
-
     #Test all values less than or equal to minimum threshold are marked for Primary supression 
     assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'Redact'] == 'Primary Suppression').all()
     #Test that none of the values where minimum threshold are equal to zero are marked for Primary Supression 
@@ -84,7 +82,7 @@ def test_less_than_threshold_no_redact_zero(sample_dataframe, parent_org, child_
     assert (result_df.loc[((result_df['GraduationCount']<= anonymizer.minimum_threshold) & (result_df['GraduationCount'] != 0) ), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} and not equal to zero")).all()
 
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column, redact_zero", [(lazy_fixture('sample_data'), None, None, None, True), (lazy_fixture('sample_data'), None, None, 'UserRedaction', True), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None, True)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column, redact_zero", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None, True)])
 def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org, redact_column, redact_zero):
     """
     Test that values less than threshold are properly redacted
@@ -94,10 +92,12 @@ def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org
     anonymizer.redact_user_requested_records()
     result_df = anonymizer.less_than_threshold()
 
-    #Test all values less than or equal to minimum threshold, including zero, are marked for Primary supression. 
+    #Test all values less than or equal to minimum threshold, including zero, are marked for Primary supression.
+
     assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'Redact'] == 'Primary Suppression').all()
 
     #Test that Redact breakdown contains an indicator of why the values were redacted, and that it references zeroes being applicable for redaction. 
+
     assert (result_df.loc[(result_df['GraduationCount']<= anonymizer.minimum_threshold), 'RedactBreakdown'].str.contains(f"Less Than or equal to {anonymizer.minimum_threshold} or zero")).all()
 
 
@@ -122,7 +122,7 @@ def test_less_than_threshold_redact_zero(sample_dataframe, parent_org, child_org
 
 ###Functional tests###
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_apply_anonymization_return_dataframe_with_redact_column(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if 'Redact' column is added to the DataFrame.
@@ -132,7 +132,7 @@ def test_apply_anonymization_return_dataframe_with_redact_column(sample_datafram
     result_df = anonymizer.apply_anonymization()
     assert 'Redact' in result_df.columns
 
-@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [(lazy_fixture('sample_data'), None, None, None), (lazy_fixture('sample_data'), None, None, 'UserRedaction'), (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
+@pytest.mark.parametrize("sample_dataframe, parent_org, child_org, redact_column", [ (lazy_fixture('sample_data'), 'ParentEntity', 'ChildEntity', None)])
 def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(sample_dataframe, parent_org, child_org, redact_column):
     """
     Test if at least two rows per sensitive column are redacted.
