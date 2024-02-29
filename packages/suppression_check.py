@@ -107,6 +107,21 @@ class DataAnonymizer:
         #Validate redact_zero input
         if redact_zero not in [True, False]:
             raise ValueError("Value for redact_zero should be True or False, not {}. Please only use True or False without quotation marks.".format(redact_zero))
+
+        #Check if duplicates are present
+        
+        if parent_organization is not None and child_organization is not None:
+            if df.duplicated(subset=[parent_organization] + [child_organization] + sensitive_columns).any():
+                raise ValueError("Duplicates are present in the child organization, parent organization columns and sensitive columns")
+        elif parent_organization is not None:
+            if df.duplicated(subset=[parent_organization] + sensitive_columns).any():
+                raise ValueError("Duplicates are present in the parent organization column and sensitive columns")
+        elif child_organization is not None:
+            if df.duplicated(subset=[child_organization] + sensitive_columns).any():
+                raise ValueError("Duplicates are present in the child organization columns and sensitive columns")
+        else:
+            if df.duplicated(subset=list(sensitive_columns)).any():
+                raise ValueError("Duplicates are present in the sensitive columns")
             
 
     def create_log(self):
@@ -189,6 +204,7 @@ class DataAnonymizer:
         logger.info('Log created!')
         return self.df_log
 
+    # Develop script to autopopulate log for each function
     def data_logger(self, filter_value, redact_name, redact_breakdown_name):
 
         self.df_log.loc[filter_value & (self.df_log['Redact'] != 'User-requested redaction'), 'RedactBreakdown'] += ', '
@@ -197,6 +213,7 @@ class DataAnonymizer:
         self.df_log.loc[filter_value & (self.df_log['RedactBinary'] != 1), 'Redact'] = redact_name
         self.df_log.loc[filter_value &  (self.df_log['RedactBinary'] != 1), 'RedactBinary'] = 1
 
+    # Take value given by user and apply to log
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
         print(self.redact_column)
@@ -415,7 +432,8 @@ class DataAnonymizer:
         logger.info('Complete review of secondary disclosure avoidance where review of one count of redacted category in a group.')
         
         return self.df_log
-        
+
+    # Apply cross suppression for aggreagte values that need to be redacted
     def cross_suppression(self):
         logger.info('Begin analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         df_parent_redact = self.df_log[(self.df_log['Grouping'] > 0) & (self.df_log['RedactBinary'] == 1)]
@@ -475,7 +493,8 @@ class DataAnonymizer:
 
         logger.info('Completion of analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         return self.df_log
-    
+
+    # Integrate log into main dataframe
     def apply_log(self):
         logger.info('Start applying log to given dataframe.')
         
@@ -497,7 +516,6 @@ class DataAnonymizer:
             df_redacted[self.frequency] = df_redacted[self.frequency].astype(datatype_of_variable)
             df_redacted.loc[df_redacted['RedactBinary'] == 1, self.frequency] = self.redact_value
         
-        # df_redacted = df_redacted.drop_duplicates().reset_index(drop=True) # this helps remove the duplicate issue, but the duplicates should not be there
         self.df_redacted = df_redacted
 
         logger.info('Finished applying log to given dataframe!')
