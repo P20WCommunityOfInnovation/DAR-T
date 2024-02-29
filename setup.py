@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name='data_anonymizer',
     version='0.1.0',
-    author='DAFne',
-    author_email='drew.bennett@vermont.gpv',
+    author='P20W+ Community of Innovation',
+    author_email='info@communityofinnovation.org',
     description='A Python package for anonymizing sensitive data in pandas DataFrames.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown', 
@@ -14,10 +14,7 @@ setup(
         'pandas>=1.0.0'
     ],
     classifiers=[
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Information Technology',
         
@@ -27,6 +24,6 @@ setup(
 
         'Programming Language :: Python :: 3'
     ],
-    python_requires='>=3.11',
+    python_requires='>=3.10',
     keywords='data anonymization, privacy, pandas', 
 )
