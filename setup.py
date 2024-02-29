@@ -11,9 +11,7 @@ setup(
     url='https://github.com/P20WCommunityOfInnovation/DisclosureAvoidance', 
     packages=find_packages(), 
     install_requires=[
-        'pandas>=1.0.0',
-        'logging>=1.0.0',
-        'itertools>=1.0.0'
+        'pandas>=1.0.0'
     ],
     classifiers=[
         #   3 - Alpha

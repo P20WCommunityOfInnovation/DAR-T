@@ -95,9 +95,6 @@ Specifically redacts records as per user requests. If a record is marked for red
 
 Applies primary suppression to records where the frequency is less than or equal to the specified minimum threshold and also zero depending on the user input. The less than threshold updates these records to indicate they have been redacted due to failing to meet the minimum threshold criteria.
 
-#### redact_threshold()
-
-Identifies and redacts data that overlaps with other redacted values. The redact threshold method is useful for maintaining data integrity and ensuring that sensitive data is not indirectly exposed through overlapping data points.
 #### sum_redact()
 
 Redacts records based on the sum of their frequencies. If the total sum of a group of records is less than the minimum threshold, those records are redacted for additional privacy protection.

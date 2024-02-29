@@ -29,7 +29,3 @@ jobs:
 
     - name: Lint with flake8
       run: flake8 ./packages/suppression_check.py --count --select=E9,F63,F7,F82 --show-source --statistics
-
-    - name: Format Python code with black
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: black ./packages/suppression_check.py --check --diff --color

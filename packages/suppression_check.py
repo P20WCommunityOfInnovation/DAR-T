@@ -247,26 +247,6 @@ class DataAnonymizer:
         # Return the updated dataframe
         return self.df_log
 
-    # Method to redact values in the dataframe that are overlapping with other redacted values
-    def redact_threshold(self):
-        logger.info('Begin Redacting based on the overlapping relationships between organizations and subgroups.')
-        self.df_log.loc[:, 'Overlapping'] = 0
-        
-        # Loop through each sensitive column to check for overlapping sensitive information
-        for sensitive_column in self.sensitive_columns:
-            list_sensitive = self.df_log[self.df_log['RedactBinary'] == 1][sensitive_column].unique()
-
-            self.df_log.loc[self.df_log[sensitive_column].isin(list_sensitive), 'Overlapping'] += 1
-        
-        # Mark rows with maximum overlapping as 'Suppressed'
-        mask = (self.df_log['Overlapping'] == self.df_log['Overlapping'].max()) & (self.df_log['RedactBinary'] == 0)
-
-        self.data_logger(mask, 'Overlapping threshold secondary suppression', 'Overlapping threshold secondary suppression')
-            
-        # Return the modified dataframe
-        logger.info('Completed redaction based on the overlapping relationships between organizations and subgroups.')
-        return self.df_log
-
     # Method to redact values in the dataframe that are the sum of minimum threshold 
     def sum_redact(self):
         # Filter rows where the value in column specified by 'frequency' is less than 'minimum_threshold' but not zero

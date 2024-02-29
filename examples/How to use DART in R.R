@@ -1,4 +1,4 @@
-#### How to run DAFne from your R file ####
+#### How to run DART from your R file ####
 # Python must be installed locally to utilize this tool
 
 # import reticulate package, which enables you to access and run Python
@@ -8,7 +8,7 @@ library(reticulate)
 source_python("..\\packages\\suppression_check.py")
 
 # read in your data you would like to redact
-df <- read.csv("..\\data\\UserData2.csv")
+df <- read.csv("..\\data\\TwoSensitive.csv")
 
 # initialize parameters to be used in DataAnonymizer call
 sensitive_list <- list('Subgroup1', 'Subgroup2')
@@ -23,4 +23,3 @@ df_redacted <- anonymizer$apply_anonymization()
 
 # view redacted dataframe
 View(df_redacted)
-
