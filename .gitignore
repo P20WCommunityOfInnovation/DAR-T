@@ -1,0 +1,44 @@
+# Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+packages/__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+#Testing
+.pytest_cache/*
+
+### VisualStudioCode ###
+*/.vscode/*
+*/.vscode/settings.json
+*/.vscode/tasks.json
+*/.vscode/launch.json
+*/.vscode/extensions.json
+*/.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+### Data Files
+data/NCLEACWDBLIDEAv112509.csv
+data/NCSCHCWDBLIDEAv112346.csv
+examples/ApplyAnonymization.csv
+examples/CreatedLog.csv

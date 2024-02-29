@@ -1,0 +1,51 @@
+Subgroup1,Subgroup2,Subgroup3,Counts,TestRedactBinary,UserRedact
+STEM,Certificate,Male,15,1,1
+STEM,Associate,Male,19,1,0
+STEM,Bachelor,Male,20,0,1
+STEM,Masters,Male,32,1,1
+STEM,Doctorate,Male,40,0,0
+Business,Certificate,Male,15,1,0
+Business,Associate,Male,40,0,0
+Business,Bachelor,Male,15,0,0
+Business,Masters,Male,90,0,0
+Business,Doctorate,Male,11,1,0
+Education,Certificate,Male,50,0,1
+Education,Associate,Male,30,0,0
+Education,Bachelor,Male,12,0,0
+Education,Masters,Male,6,1,0
+Education,Doctorate,Male,44,0,0
+Health,Certificate,Male,100,0,0
+Health,Associate,Male,20,0,0
+Health,Bachelor,Male,100,0,0
+Health,Masters,Male,30,1,0
+Health,Doctorate,Male,70,0,0
+Social and Behavioral,Certificate,Male,0,1,0
+Social and Behavioral,Associate,Male,0,1,0
+Social and Behavioral,Bachelor,Male,0,1,0
+Social and Behavioral,Masters,Male,0,1,0
+Social and Behavioral,Doctorate,Male,10,1,0
+STEM,Certificate,Female,4,1,1
+STEM,Associate,Female,5,1,0
+STEM,Bachelor,Female,20,0,1
+STEM,Masters,Female,32,1,1
+STEM,Doctorate,Female,40,0,0
+Business,Certificate,Female,15,1,0
+Business,Associate,Female,40,0,0
+Business,Bachelor,Female,15,0,0
+Business,Masters,Female,90,0,0
+Business,Doctorate,Female,11,1,0
+Education,Certificate,Female,50,0,1
+Education,Associate,Female,30,0,0
+Education,Bachelor,Female,12,0,0
+Education,Masters,Female,6,1,0
+Education,Doctorate,Female,44,0,0
+Health,Certificate,Female,100,0,0
+Health,Associate,Female,20,0,0
+Health,Bachelor,Female,100,0,0
+Health,Masters,Female,30,1,0
+Health,Doctorate,Female,70,0,0
+Social and Behavioral,Certificate,Female,0,1,0
+Social and Behavioral,Associate,Female,0,1,0
+Social and Behavioral,Bachelor,Female,0,1,0
+Social and Behavioral,Masters,Female,0,1,0
+Social and Behavioral,Doctorate,Female,10,1,0

@@ -1,0 +1,26 @@
+﻿Subgroup1,Subgroup2,Counts,Redact Solution 1
+STEM,Certificate,15,
+STEM,Associate,19,
+STEM,Bachelor,20,
+STEM,Masters,32,
+STEM,Doctorate,40,
+Business,Certificate,15,
+Business,Associate,40,
+Business,Bachelor,15,
+Business,Masters,90,
+Business,Doctorate,11,
+Education,Certificate,50,
+Education,Associate,90,
+Education,Bachelor,12,1
+Education,Masters,6,1
+Education,Doctorate,44,
+Health,Certificate,100,
+Health,Associate,20,
+Health,Bachelor,100,1
+Health,Masters,30,1
+Health,Doctorate,70,
+Social and Behavioral,Certificate,44,
+Social and Behavioral,Associate,41,
+Social and Behavioral,Bachelor,42,
+Social and Behavioral,Masters,43,
+Social and Behavioral,Doctorate,40,
