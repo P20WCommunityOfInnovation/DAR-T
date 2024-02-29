@@ -19,7 +19,7 @@ setup(
         #   5 - Production/Stable
         'Development Status :: 4 - Beta',
 
-        'Intended Audience :: State and Federal United States Education Agencies ',
+        'Intended Audience :: Information Technology',
         
         'Topic :: Software Development :: Libraries :: Python Modules',
 
