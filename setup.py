@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='data_anonymizer',
+    name='dar_t',
     version='0.1.0',
     author='P20W+ Community of Innovation',
     author_email='info@communityofinnovation.org',
