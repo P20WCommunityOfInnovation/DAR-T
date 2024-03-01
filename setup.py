@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='data_anonymizer',
+    name='dar-t',
     version='0.1.0',
     author='P20W+ Community of Innovation',
     author_email='info@communityofinnovation.org',
@@ -20,7 +20,7 @@ setup(
         
         'Topic :: Software Development :: Libraries :: Python Modules',
 
-        'License :: OSI Approved',
+        'License :: OSI Approved :: Apache Software License',
 
         'Programming Language :: Python :: 3'
     ],
