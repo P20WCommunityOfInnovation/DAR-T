@@ -20,7 +20,7 @@ setup(
         
         'Topic :: Software Development :: Libraries :: Python Modules',
 
-        'License :: OSI Approved',
+        'License :: OSI Approved :: Apache Software License',
 
         'Programming Language :: Python :: 3'
     ],
