@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='dar-t',
+    name='dar-tool',
     version='0.1.0',
     author='P20W+ Community of Innovation',
     author_email='info@communityofinnovation.org',
