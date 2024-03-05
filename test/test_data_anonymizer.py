@@ -1,7 +1,7 @@
 import pytest
 from pytest_lazyfixture import lazy_fixture
 import pandas as pd
-from packages.suppression_check import DataAnonymizer
+from dar_tool.suppression_check import DataAnonymizer
 
 @pytest.fixture
 def sample_data():
