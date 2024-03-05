@@ -1,6 +1,9 @@
-# Data Anonymizer Script
+<p align="center">
+  <img src="assets/images/DAR-T_main_text.png" alt="DART Logo" width = "30%">
+</p>
+
 ## Overview
-The Data Anonymizer script is crafted to ensure the anonymization of sensitive information within a DataFrame. Tailored for environments where data privacy and confidentiality are of utmost importance, encompasses a variety of methods to redact sensitive data. These methods are meticulously designed to cater to specific criteria, including frequency of data, predefined minimum thresholds, and records earmarked for redaction as per user requests. 
+The Disclosure Avoidance Redaction Tool (DART) is designed to ensure the anonymization of sensitive information within a DataFrame. Tailored for environments where data privacy and confidentiality are of utmost importance, encompasses a variety of methods to redact sensitive data. These methods are meticulously designed to cater to specific criteria, including frequency of data, predefined minimum thresholds, and records earmarked for redaction as per user requests. 
 
 ## Requirements
 Python Version:
