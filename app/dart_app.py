@@ -102,13 +102,13 @@ if uploadedFile:
             """
             #### Additional User Inputs
 
-            **User Specified Redaction Column**: An optional column where the user may pre-specify which columns they want redaction applied to. Columns marked for redaction must contain be marked with a 1. 
+            **User Specified Redaction Column**: An optional column where the user may pre-specify which columns they want redaction applied to. The user specififed redaction column should only contain 1s and 0s, where 1 is a row that should have redaction applied. 
 
             **Minimum Threshold**: The minimum threshold for redaction. This is 10 by default and does not include zero. All values 10 and below, except zero, will be redacted. 
 
             **Should zeroes be redacted?**: If checked, zeroes will be redacted in addition to values at or below the minimum threshold. 
 
-            **What string should replace redacted values?**: An optional string value you can specify that will overwrite redacted counts with the specified value.
+            **What string should replace redacted values?**: An optional string value you can specify what value will overwrite redacted counts. 
             """
         )
 
@@ -125,14 +125,14 @@ if uploadedFile:
         redact_column = None
 
     try:
-        redact_value = redact_value #Just assignign this to itself so it doesn't print to the streamlit app. 
+        redact_value = redact_value #Just assigning this to itself so it doesn't print to the streamlit app. 
     except NameError:
         redact_value = None
 
 #Add button to apply redaction
     
     if st.sidebar.button("Redact my dataset"):
-        anonymizer = DataAnonymizer(df, parent_organization=parent_org, child_organization=child_org,sensitive_columns=sensitive_columns, frequency= frequency, redact_column=redact_column,redact_zero=redact_zero,redact_value= redact_value)
+        anonymizer = DataAnonymizer(df, parent_organization=parent_org, child_organization=child_org,sensitive_columns=sensitive_columns, frequency= frequency, minimum_threshold=minimum_threshold, redact_column=redact_column,redact_zero=redact_zero,redact_value= redact_value)
         df_redacted = anonymizer.apply_anonymization()
 
 
