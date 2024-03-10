@@ -133,35 +133,38 @@ class DataAnonymizer:
             for organization_column in self.organization_columns:
                 for sensitive_combination in self.sensitive_combinations:
                     df_grouped = self.df.groupby([organization_column] + list(sensitive_combination))[self.frequency].sum().reset_index()
-                    df_grouped.loc[:, 'Grouping'] = grouping_value
-                    grouping_value += 1
-                    df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-                    df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
-                    df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-                    df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
-                    df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+                    if not df_grouped.empty:
+                        df_grouped.loc[:, 'Grouping'] = grouping_value
+                        grouping_value += 1
+                        df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+                        df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
+                        df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+                        df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
+                        df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
         if self.parent_organization is not None:
             df_grouped = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
-            df_grouped.loc[:, 'Grouping'] = grouping_value
-            grouping_value += 1
-            df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
-            df_grouped_min = df_not_redacted.groupby(['Grouping'])[self.frequency].min().reset_index()
-            df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
-            df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
-            df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+            if not df_grouped.empty:
+                df_grouped.loc[:, 'Grouping'] = grouping_value
+                grouping_value += 1
+                df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+                df_grouped_min = df_not_redacted.groupby(['Grouping'])[self.frequency].min().reset_index()
+                df_grouped_min.rename(columns={self.frequency: "MinimumValue"}, inplace=True)
+                df_grouped = df_grouped.merge(df_grouped_min, on=['Grouping'], how='left')
+                df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
             
         for sensitive_combination in self.sensitive_combinations:
             list_combination = list(sensitive_combination)
             df_grouped = self.df.groupby(list_combination)[self.frequency].sum().reset_index()
-            df_grouped.loc[:, 'Grouping'] = grouping_value
-            grouping_value += 1
-            df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
-            df_not_redacted = df_dataframes[df_dataframes[self.frequency] > self.minimum_threshold]
-            if (list_combination != self.sensitive_columns) | (len(self.sensitive_columns) == 1) :
-                df_grouped_min = df_not_redacted.groupby(['Grouping'] + list_combination)[self.frequency].min().reset_index()
-                string_combination = ''.join(list_combination)
-                df_grouped_min.rename(columns={self.frequency: "MinimumValue" + string_combination}, inplace=True)
-                df_dataframes = df_dataframes.merge(df_grouped_min, on= ['Grouping'] + list_combination, how='left')
+            if not df_grouped.empty:
+                df_grouped.loc[:, 'Grouping'] = grouping_value
+                grouping_value += 1
+                df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+                df_not_redacted = df_dataframes[df_dataframes[self.frequency] > self.minimum_threshold]
+                if (list_combination != self.sensitive_columns) | (len(self.sensitive_columns) == 1) :
+                    df_grouped_min = df_not_redacted.groupby(['Grouping'] + list_combination)[self.frequency].min().reset_index()
+                    string_combination = ''.join(list_combination)
+                    df_grouped_min.rename(columns={self.frequency: "MinimumValue" + string_combination}, inplace=True)
+                    df_dataframes = df_dataframes.merge(df_grouped_min, on= ['Grouping'] + list_combination, how='left')
     
         self.df.loc[:, 'Grouping'] = grouping_value
         df_log = pd.concat([df_dataframes, self.df])
