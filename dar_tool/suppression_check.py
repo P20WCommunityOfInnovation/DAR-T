@@ -357,7 +357,7 @@ class DataAnonymizer:
         elif len(self.sensitive_combinations) == 1:
             df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
             df_count_value = df_redact_less.groupby(['Grouping'], dropna=False)[self.frequency].count().reset_index()
-            df_one_redacted = df_summed_value[df_summed_value[self.frequency] == 1]
+            df_one_redacted = df_count_value[df_count_value[self.frequency] == 1]
             df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
             df_minimum = df_not_redacted.groupby(['Grouping'], dropna=False)[self.frequency].min().reset_index()
             df_minimum.rename(columns={self.frequency:'LastMiniumValue'}, inplace=True)
@@ -375,7 +375,7 @@ class DataAnonymizer:
                     string_combination = ''.join(list_combination)
                     df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
                     df_count_value = df_redact_less.groupby(['Grouping'] + list_combination, dropna=False)[self.frequency].count().reset_index()
-                    df_one_redacted = df_summed_value[df_summed_value[self.frequency] == 1]
+                    df_one_redacted = df_count_value[df_count_value[self.frequency] == 1]
                     if not df_one_redacted.empty:
                         df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
                         df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[self.frequency].min().reset_index()
@@ -524,7 +524,7 @@ class DataAnonymizer:
                     df_parent_list.drop_duplicates(inplace=True)
                     df_primary = self.df_log.merge(df_parent_list, on = list_combination, how='left')
                     df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-                    df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[self.frequency].min().reset_index()
+                    df_minimum = df_not_redacted.groupby(list_combination, dropna=False)[self.frequency].min().reset_index()
                     df_minimum.rename(columns={self.frequency:'LastMiniumValue'}, inplace=True)
                     df_minimum_redacted = df_primary.merge(df_minimum, on = list_combination)
                     df_minimum_redacted = df_minimum_redacted[['Grouping'] + list_combination + ['LastMiniumValue'] + [redact_parent_name]]
