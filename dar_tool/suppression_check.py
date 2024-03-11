@@ -112,7 +112,7 @@ class DataAnonymizer:
         
         if parent_organization is not None and child_organization is not None:
             if df.duplicated(subset=[parent_organization] + [child_organization] + sensitive_columns).any():
-                display(df[[parent_organization] + [child_organization] + sensitive_columns][df.duplicated(subset=[parent_organization] + [child_organization] + sensitive_columns)])
+                print(df[[parent_organization] + [child_organization] + sensitive_columns][df.duplicated(subset=[parent_organization] + [child_organization] + sensitive_columns)])
                 raise ValueError("Duplicates are present in the child organization, parent organization columns and sensitive columns")
         elif parent_organization is not None:
             if df.duplicated(subset=[parent_organization] + sensitive_columns).any():
