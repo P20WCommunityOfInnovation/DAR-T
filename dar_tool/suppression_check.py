@@ -220,7 +220,6 @@ class DataAnonymizer:
     # Take value given by user and apply to log
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
-        print(self.redact_column)
         if self.redact_column is not None:
             self.data_logger((self.df_log[self.redact_column] == 1), 'User-requested redaction', 'User-requested redaction')
 
@@ -478,12 +477,14 @@ class DataAnonymizer:
                 if (list_combination != self.sensitive_columns) & (not df_test.empty):
                     string_combination = ''.join(list_combination)
                     df_parent_list = df_parent_redact[self.organization_columns + list(sensitive_combination) + [redact_parent_name]]
-                    df_primary = self.df_log.merge(df_parent_list, on = self.organization_columns +  list_combination, how='left')
+                    df_parent_list.drop_duplicates(inplace=True)
+                    df_primary = df_log_na.merge(df_parent_list, on = self.organization_columns +  list_combination, how='left')
                     df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-                    df_minimum = df_not_redacted.groupby(['Grouping'] + self.organization_columns + list_combination, dropna=False)[self.frequency].min().reset_index()
+                    df_minimum = df_not_redacted.groupby(self.organization_columns + list_combination, dropna=False)[self.frequency].min().reset_index()
                     df_minimum.rename(columns={self.frequency:'LastMiniumValue'}, inplace=True)
                     df_minimum_redacted = df_primary.merge(df_minimum, on = self.organization_columns + list_combination)
-                    df_minimum_redacted = df_minimum_redacted[['Grouping'] + self.organization_columns + list_combination + ['LastMiniumValue']]
+                    df_minimum_redacted = df_minimum_redacted[['Grouping'] + self.organization_columns + list_combination + ['LastMiniumValue'] + [redact_parent_name]]
+                    df_minimum_redacted.drop_duplicates(inplace=True)
                     df_minimum_one = df_log_na.merge(df_minimum_redacted, on = ['Grouping'] + self.organization_columns + list_combination, how='left')
                     
                     mask = (df_minimum_one['RedactParentBinary'] == 1) & (df_minimum_one['RedactBinary'] != 1) & (df_minimum_one[self.frequency] == df_minimum_one['LastMiniumValue'])
@@ -495,17 +496,18 @@ class DataAnonymizer:
                 list_combination = list(sensitive_combination)
                 if (list_combination != self.sensitive_columns):  
                     string_combination = ''.join(list_combination)
-                    df_redacted = self.df_log[(self.df_log['RedactBinary'] == 1) & (self.df_log['Grouping'] == 0)]
+                    df_redacted = self.df_log[(df_log_na['RedactBinary'] == 1) & (df_log_na['Grouping'] == 0)]
 
                     #One count of redacted value is present
                     df_count = df_redacted.groupby(['Grouping'] + self.organization_columns +  list(sensitive_combination))['RedactBinary'].count().reset_index()
                     df_one_count = df_count[df_count['RedactBinary'] == 1]
                     df_one_count = df_one_count[['Grouping'] + self.organization_columns + list(sensitive_combination)]
-                    df_one_count = self.df_log.merge(df_one_count, on =['Grouping'] + self.organization_columns + list(sensitive_combination))
+                    df_one_count.drop_duplicates(inplace=True)
+                    df_one_count = df_log_na.merge(df_one_count, on =['Grouping'] + self.organization_columns + list(sensitive_combination))
                     df_one_count = df_one_count[(df_one_count['RedactBinary'] == 0)]
                     df_minimum = df_one_count.groupby(['Grouping'] + self.organization_columns + list(sensitive_combination))[self.frequency].min().reset_index()
                     df_minimum.rename(columns = {self.frequency:'CrossMinimum' + string_combination}, inplace=True)
-                    df_minimum_value = self.df_log.merge(df_minimum, on =['Grouping'] + self.organization_columns + list(sensitive_combination), how='left')
+                    df_minimum_value = df_log_na.merge(df_minimum, on =['Grouping'] + self.organization_columns + list(sensitive_combination), how='left')
                     mask = (df_minimum_value['RedactBinary'] != 1) & (df_minimum_value["CrossMinimum" + string_combination] == df_minimum_value[self.frequency])
                     
                     df_log_na.loc[mask, 'RedactBinary'] = 1
@@ -519,12 +521,14 @@ class DataAnonymizer:
                 if (list_combination != self.sensitive_columns) & (not df_test.empty):
                     string_combination = ''.join(list_combination)
                     df_parent_list = df_parent_redact[list(sensitive_combination) + [redact_parent_name]]
+                    df_parent_list.drop_duplicates(inplace=True)
                     df_primary = self.df_log.merge(df_parent_list, on = list_combination, how='left')
                     df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
                     df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[self.frequency].min().reset_index()
                     df_minimum.rename(columns={self.frequency:'LastMiniumValue'}, inplace=True)
                     df_minimum_redacted = df_primary.merge(df_minimum, on = list_combination)
-                    df_minimum_redacted = df_minimum_redacted[['Grouping'] + list_combination + ['LastMiniumValue']]
+                    df_minimum_redacted = df_minimum_redacted[['Grouping'] + list_combination + ['LastMiniumValue'] + [redact_parent_name]]
+                    df_minimum_redacted.drop_duplicates(inplace=True)
                     df_minimum_one = df_log_na.merge(df_minimum_redacted, on = ['Grouping'] + list_combination, how='left')
                     
                     mask = (df_minimum_one['RedactParentBinary'] == 1) & (df_minimum_one['RedactBinary'] != 1) & (df_minimum_one[self.frequency] == df_minimum_one['LastMiniumValue'])
@@ -535,11 +539,12 @@ class DataAnonymizer:
                 list_combination = list(sensitive_combination)
                 if (list_combination != self.sensitive_columns):  
                     string_combination = ''.join(list_combination)
-                    df_redacted = self.df_log[(self.df_log['RedactBinary'] == 1) & (self.df_log['Grouping'] == 0)]
+                    df_redacted = df_log_na[(df_log_na['RedactBinary'] == 1) & (df_log_na['Grouping'] == 0)]
                     df_count = df_redacted.groupby(['Grouping'] + list(sensitive_combination))['RedactBinary'].count().reset_index()
                     df_one_count = df_count[df_count['RedactBinary'] == 1]
                     df_one_count = df_one_count[['Grouping'] + list(sensitive_combination)]
-                    df_one_count = self.df_log.merge(df_one_count, on =['Grouping'] + list(sensitive_combination))
+                    df_one_count.drop_duplicates(inplace=True)
+                    df_one_count = df_log_na.merge(df_one_count, on =['Grouping'] + list(sensitive_combination))
                     df_one_count = df_one_count[(df_one_count['RedactBinary'] == 0)]
                     df_minimum = df_one_count.groupby(['Grouping'] + list(sensitive_combination))[self.frequency].min().reset_index()
                     df_minimum.rename(columns = {self.frequency:'CrossMinimum' + string_combination}, inplace=True)
@@ -567,11 +572,8 @@ class DataAnonymizer:
         else:
             df_redacted =  self.df.merge(self.df_log, on = self.sensitive_columns +  [self.frequency], how='inner')
             columns = self.sensitive_columns +  [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
-        print(list(df_redacted))
         if self.redact_column is not None:
-            print(columns)
             columns = columns + [self.redact_column]
-        print(columns)
         df_redacted = df_redacted[columns]
 
         if self.redact_value is not None:
