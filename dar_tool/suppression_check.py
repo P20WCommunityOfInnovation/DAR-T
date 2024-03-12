@@ -57,7 +57,10 @@ class DataAnonymizer:
         if child_organization and child_organization not in df.columns:
             raise KeyError(f"Child organization column '{child_organization}' does not exist in the DataFrame. Verify you spelled the column name correctly.")
 
-
+        #Add validation that at least one sensitive column exists
+        if sensitive_columns is None:
+            raise KeyError("You must specify at least one sensitive column.")
+        
         #Validating presenence of all senstive columns 
         if isinstance(sensitive_columns, str):
             sensitive_columns_list = [sensitive_columns]
