@@ -123,7 +123,13 @@ class DataAnonymizer:
         subset_cols.extend(sensitive_columns)
 
         if df.duplicated(subset=subset_cols).any():
-            raise ValueError(f"Each combination of values in the {subset_cols} columns should be unique, but there are instances where the same combination appears more than once. Check your input dataframe and use more subgroups or organizations as needed to make sure each row identifies a unique group.")
+            
+            raise ValueError(f"""
+                             Each combination of values in the {subset_cols} columns should be unique, but there are instances where the same combination appears more than once. 
+                             Check your input dataframe and use more subgroups or organizations as needed to make sure each row identifies a unique group. 
+                             The following grouping column values are duplicated: \n {df[subset_cols][df.duplicated(subset=subset_cols)]}
+                             """)
+
             
 
     def create_log(self):
