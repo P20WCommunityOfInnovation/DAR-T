@@ -108,20 +108,22 @@ class DataAnonymizer:
         if redact_zero not in [True, False]:
             raise ValueError("Value for redact_zero should be True or False, not {}. Please only use True or False without quotation marks.".format(redact_zero))
 
-        #Check if duplicates are present
+        #Check if duplicates are present in the groping columns. All rows should represent a unique group. 
+
+        subset_cols = []
+
+        #Append must be used instead of extend since parent_org and child_org should always be strings. If you extend a string it unpacks it and adds every character to the list. 
+        if parent_organization is not None:
+            subset_cols.append(parent_organization)
+        if child_organization is not None:
+            subset_cols.append(child_organization)
         
-        if parent_organization is not None and child_organization is not None:
-            if df.duplicated(subset=[parent_organization] + [child_organization] + sensitive_columns).any():
-                raise ValueError("Duplicates are present in the child organization, parent organization columns and sensitive columns")
-        elif parent_organization is not None:
-            if df.duplicated(subset=[parent_organization] + sensitive_columns).any():
-                raise ValueError("Duplicates are present in the parent organization column and sensitive columns")
-        elif child_organization is not None:
-            if df.duplicated(subset=[child_organization] + sensitive_columns).any():
-                raise ValueError("Duplicates are present in the child organization columns and sensitive columns")
-        else:
-            if df.duplicated(subset=list(sensitive_columns)).any():
-                raise ValueError("Duplicates are present in the sensitive columns")
+        if isinstance(sensitive_columns, str):
+            sensitive_columns = [sensitive_columns]
+        subset_cols.extend(sensitive_columns)
+
+        if df.duplicated(subset=subset_cols).any():
+            raise ValueError(f"Each combination of values in the {subset_cols} columns should be unique, but there are instances where the same combination appears more than once. Check your input dataframe and use more subgroups or organizations as needed to make sure each row identifies a unique group.")
             
 
     def create_log(self):
