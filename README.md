@@ -28,15 +28,22 @@ Binary installers for the latest released version are available at the Python Pa
 
 ```bash
 #PyPI
-pip install pandas
+pip install dar-tool
 ```
 
 # Launching the Streamlit App 
 
-To launch the Streamlit application, navigate to the directory containing app.py and run the following command:
+To launch the Streamlit application, navigate to the directory (app directory) containing app.py and run the following commands:
 
 ```bash
+pip install -r requirements.txt
 streamlit run app.py
+```
+
+If you prefer to run DAR-T from Docker, you can pull it from Docker Hub using the following command:
+
+```bash
+docker pull aemnathanclinton/dar-t:v1.0.1
 ```
 
 ## Modules and Functions
