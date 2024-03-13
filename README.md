@@ -21,6 +21,24 @@ pip install pandas
 ```
 (Note: itertools is part of the Python standard library and does not need to be installed separately.)
 
+# Where to get it
+The source code is currently hosted on GitHub at: https://github.com/P20WCommunityOfInnovation/DAR-T
+
+Binary installers for the latest released version are available at the Python Package Index (PyPI).
+
+```bash
+#PyPI
+pip install pandas
+```
+
+# Launching the Streamlit App 
+
+To launch the Streamlit application, navigate to the directory containing app.py and run the following command:
+
+```bash
+streamlit run app.py
+```
+
 ## Modules and Functions
 ### Import Statements
 The script uses:
