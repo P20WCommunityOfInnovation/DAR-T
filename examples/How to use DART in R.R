@@ -5,7 +5,7 @@
 library(reticulate)
 
 # load in the DataAnonymizer class with source_python
-source_python("..\\packages\\suppression_check.py")
+source_python("..\\dar_tool\\suppression_check.py")
 
 # read in your data you would like to redact
 df <- read.csv("..\\data\\TwoSensitive.csv")
