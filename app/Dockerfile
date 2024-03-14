@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN apt-get update && apt-get install -y curl && pip3 install -r requirements.txt
+RUN apt-get update && apt-get install -y curl && pip3 install --no-cache-dir -r requirements.txt
 
 COPY config.toml /root/.streamlit/config.toml
 
