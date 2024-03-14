@@ -24,4 +24,4 @@ jobs:
         context: ./app
         file: ./app/Dockerfile
         push: true
-        tags: CommunityOfInnovation/DART_UI:latest
+        tags: p20communityofinnovation/dart_ui:latest
