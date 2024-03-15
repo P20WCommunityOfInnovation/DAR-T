@@ -14,13 +14,6 @@ Packages:
 * itertools
 * logging
 
-You can install the required packages using pip:
-
-```bash
-pip install pandas
-```
-(Note: itertools is part of the Python standard library and does not need to be installed separately.)
-
 # Where to get it
 The source code is currently hosted on GitHub at: https://github.com/P20WCommunityOfInnovation/DAR-T
 
@@ -28,15 +21,40 @@ Binary installers for the latest released version are available at the Python Pa
 
 ```bash
 #PyPI
-pip install pandas
+pip install dar-tool
 ```
 
-# Launching the Streamlit App 
+# Launching the Dart User Interface Streamlit App 
+DAR-T also provides a Streamlit app for users which prefer interacting with a user interface. 
 
-To launch the Streamlit application, navigate to the directory containing app.py and run the following command:
+## Launching Via Docker
+Docker provides a pre-packaged container of all requirements and dependencies, so users do not need to install Python or packages. 
+
+As a prerequisite you must have [Docker installed](https://docs.docker.com/engine/install/) on your machine. 
+
+To run the Docker image, you must first pull it from Docker Hub using the following command:
 
 ```bash
-streamlit run app.py
+docker pull aemnathanclinton/dar-t:latest
+```
+If desired, you may pull a specific release of DAR-T by using the following command:
+
+```bash
+docker pull aemnathanclinton/dar-t:<release-tag>
+```
+Then run:
+
+```bash
+docker run -p 8501:8501 dar-t
+```
+You may also run the Docker image via the Docker Desktop UI. Ensure that port 8501 is specified as the mapped port on your host machine in the optional run settings. 
+## Launching Locally Via Command Line
+
+To launch the Streamlit application using your locally installed Python version, navigate to the directory (app directory) containing app.py and run the following commands:
+
+```bash
+pip install -r requirements.txt
+streamlit run dart_app.py
 ```
 
 ## Modules and Functions
