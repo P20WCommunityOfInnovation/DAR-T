@@ -54,8 +54,8 @@ jobs:
         file: ./app/Dockerfile
         push: true
         tags: |
-          aemnathanclinton/dar-t:latest
-          aemnathanclinton/dar-t:${{ github.event.release.tag_name }}
+          p20communityofinnovation/dart_ui:latest
+          p20communityofinnovation/dart_ui:${{ github.event.release.tag_name }}
 
 
         

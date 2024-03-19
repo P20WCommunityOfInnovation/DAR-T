@@ -35,17 +35,17 @@ As a prerequisite you must have [Docker installed](https://docs.docker.com/engin
 To run the Docker image, you must first pull it from Docker Hub using the following command:
 
 ```bash
-docker pull aemnathanclinton/dar-t:latest
+docker pull p20communityofinnovation/dart_ui:latest
 ```
 If desired, you may pull a specific release of DAR-T by using the following command:
 
 ```bash
-docker pull aemnathanclinton/dar-t:<release-tag>
+docker p20communityofinnovation/dart_ui:<release-tag>
 ```
 Then run:
 
 ```bash
-docker run -p 8501:8501 dar-t
+docker run -p 8501:8501 dart_ui
 ```
 You may also run the Docker image via the Docker Desktop UI. Ensure that port 8501 is specified as the mapped port on your host machine in the optional run settings. 
 ## Launching Locally Via Command Line
