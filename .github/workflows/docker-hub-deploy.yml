@@ -6,13 +6,11 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-#This workflow also builds a Docker image for the DAR-T streamlit app and pushes it to Dockerhub. 
+# This workflow also builds a Docker image for the DAR-T streamlit app and pushes it to Dockerhub. 
 
 name: Deploy to Docker Hub
 
-on:
-  release:
-    types: [published]
+on:  workflow_dispatch
 
 permissions:
   contents: read
