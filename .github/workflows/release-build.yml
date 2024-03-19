@@ -54,8 +54,8 @@ jobs:
         file: ./app/Dockerfile
         push: true
         tags: |
-          p20communityofinnovation/dart_ui:latest
-          p20communityofinnovation/dart_ui:${{ github.event.release.tag_name }}
+          p20communityofinnovation/dar-t:latest
+          p20communityofinnovation/dar-t:${{ github.event.release.tag_name }}
 
 
         
