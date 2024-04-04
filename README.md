@@ -261,8 +261,6 @@ Garrett Amstutz
 
 Seth Taylor
 
-Beth Kelley
-
 Didi Miles
 
 Stephanie Straus
