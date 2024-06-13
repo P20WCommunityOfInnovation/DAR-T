@@ -13,6 +13,7 @@ logger.addHandler(handler)
 class DataAnonymizer:
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column. 
     def __init__(self, df, parent_organization=None, child_organization=None, sensitive_columns=None, frequency=None, redact_column=None, minimum_threshold=10, redact_zero=False, redact_value=None):
+
         
         self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold, redact_zero) #Validating user inputs
 
@@ -44,7 +45,7 @@ class DataAnonymizer:
         self.child_organization = child_organization
         self.redact_zero = redact_zero
         self.redact_value = redact_value
-        
+
 
     def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column, minimum_threshold, redact_zero):
         #The class currently supports only dataframes as an input. If this changes to support .csvs or other formats this check can be expanded. 
@@ -132,7 +133,9 @@ class DataAnonymizer:
                              Check your input dataframe and use more subgroups or organizations as needed to make sure each row identifies a unique group. 
                              The following grouping column values are duplicated: \n {df[subset_cols][df.duplicated(subset=subset_cols)]}
                              """)
-
+        if sensitive_columns is not None:
+            for column in sensitive_columns:
+                df[column] = df[column].astype(str)
             
 
     def create_log(self):
