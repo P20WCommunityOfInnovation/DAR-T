@@ -164,7 +164,7 @@ Here is a quick example:
 
 ```python
 import pandas as pd
-from data_anonymizer import DataAnonymizer
+from dar_tool import DataAnonymizer
 
 # Sample DataFrame
 data = {
