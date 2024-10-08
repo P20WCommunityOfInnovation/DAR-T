@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dar-tool',
-    version='1.0.2',
+    version='1.0.3',
     author='P20W+ Community of Innovation',
     author_email='info@communityofinnovation.org',
     description='A Python package for anonymizing sensitive data in pandas DataFrames.',
