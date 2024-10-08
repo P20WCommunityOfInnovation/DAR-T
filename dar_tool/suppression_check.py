@@ -40,7 +40,7 @@ class DataAnonymizer:
             logger.info('Redact is empty or not included')  # Display a message if redact_column is None
         
         self.frequency = frequency
-        self.minimum_threshold = minimum_threshold
+        self.minimum_threshold = int(minimum_threshold)
         self.parent_organization = parent_organization
         self.child_organization = child_organization
         self.redact_zero = redact_zero
@@ -136,6 +136,13 @@ class DataAnonymizer:
         if sensitive_columns is not None:
             for column in sensitive_columns:
                 df[column] = df[column].astype(str)
+        
+        # Ensure that the frequency column contains only integer values
+        try:
+            df[frequency] = df[frequency].astype(int)
+        except ValueError:
+            raise ValueError(f"All values in the frequency column '{frequency}' must be integers.")
+        
             
 
     def create_log(self):
@@ -152,10 +159,15 @@ class DataAnonymizer:
                         df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
                         df_grouped_min = df_not_redacted.groupby([organization_column])[self.frequency].min().reset_index()
                         df_grouped_min = df_grouped_min.rename(columns={self.frequency: "MinimumValue"})
+
+                        # Ensure that the parent and child columns are strings
+                        df_grouped_min[organization_column] = df_grouped_min[organization_column].astype(str)
+
                         df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
                         df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
         if self.parent_organization is not None:
             df_grouped = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
+
             if not df_grouped.empty:
                 df_grouped.loc[:, 'Grouping'] = grouping_value
                 grouping_value += 1
@@ -203,6 +215,12 @@ class DataAnonymizer:
             df_not_redacted = df_log[(df_log[self.frequency] > self.minimum_threshold)]
             df_grouped_min = df_not_redacted.groupby(self.organization_columns, dropna=False)[self.frequency].min().reset_index()
             df_grouped_min = df_grouped_min.rename(columns={self.frequency: "MinimumValueTotal"})
+
+            # Ensure that the parent and child columns are strings
+            df_grouped_min[self.organization_columns[0]] = df_grouped_min[self.organization_columns[0]].astype(str)
+            if self.organization_columns[1] is not None:
+                df_grouped_min[self.organization_columns[1]] = df_grouped_min[self.organization_columns[1]].astype(str)
+
             df_log = df_log.merge(df_grouped_min, on=self.organization_columns, how='left')
             df_log.loc[df_log['MinimumValue'].isnull(), 'MinimumValue'] = df_log['MinimumValueTotal']
             df_log = df_log.drop('MinimumValueTotal', axis=1)
@@ -286,6 +304,12 @@ class DataAnonymizer:
                         df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
                         df_minimum = df_not_redacted.groupby(['Grouping'] + self.organization_columns + list_combination, dropna=False)[self.frequency].min().reset_index()
                         df_minimum = df_minimum.rename(columns={self.frequency:'LastMiniumValue'})
+                        
+                        # Ensure that the parent and child columns are strings
+                        df_minimum[self.organization_columns[0]] = df_minimum[self.organization_columns[0]].astype(str)
+                        if self.organization_columns[1] is not None:
+                            df_minimum[self.organization_columns[1]] = df_minimum[self.organization_columns[1]].astype(str)
+
                         df_minimum_redacted = df_summed_less_than.merge(df_minimum, on = ['Grouping'] + self.organization_columns + list_combination)
                         df_minimum_redacted = df_minimum_redacted[['Grouping'] + self.organization_columns + list_combination + ['LastMiniumValue']]
                         df_minimum_one = df_log_na.merge(df_minimum_redacted, on = ['Grouping'] + self.organization_columns + list_combination, how='left')
@@ -495,6 +519,11 @@ class DataAnonymizer:
                     df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
                     df_minimum = df_not_redacted.groupby(self.organization_columns + list_combination, dropna=False)[self.frequency].min().reset_index()
                     df_minimum = df_minimum.rename(columns={self.frequency:'LastMiniumValue'})
+
+                    for organization_column in self.organization_columns:
+                        df_primary[organization_column] = df_primary[organization_column].astype(str)
+                        df_minimum[organization_column] = df_minimum[organization_column].astype(str)
+
                     df_minimum_redacted = df_primary.merge(df_minimum, on = self.organization_columns + list_combination)
                     df_minimum_redacted = df_minimum_redacted[['Grouping'] + self.organization_columns + list_combination + ['LastMiniumValue'] + [redact_parent_name]]
                     df_minimum = df_minimum_redacted.drop_duplicates()

@@ -18,6 +18,17 @@ ipython_config.py
 #Testing
 .pytest_cache/*
 
+#venv
+.venv/*
+pyvenv.cfg
+
+#Libraries
+Lib/*
+
+#Scripts
+Scripts/*
+
+
 ### VisualStudioCode ###
 */.vscode/*
 */.vscode/settings.json
