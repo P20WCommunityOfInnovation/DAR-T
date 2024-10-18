@@ -297,7 +297,6 @@ class DataAnonymizer:
                 if list_combination != self.sensitive_columns:
                     string_combination = ''.join(list_combination)
                     df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
-                    df_redact_less.loc[:, 'Redacted'] = 1
                     df_summed_value = df_redact_less.groupby(['Grouping'] + self.organization_columns + list_combination)[self.frequency].sum().reset_index()
                     df_summed_less_than = df_summed_value[df_summed_value[self.frequency] <= self.minimum_threshold]
                     if not df_summed_less_than.empty:
