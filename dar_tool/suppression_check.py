@@ -218,7 +218,7 @@ class DataAnonymizer:
 
             # Ensure that the parent and child columns are strings
             df_grouped_min[self.organization_columns[0]] = df_grouped_min[self.organization_columns[0]].astype(str)
-            if self.organization_columns[1] is not None:
+            if len(self.organization_columns) > 1 and self.organization_columns[1] is not None:
                 df_grouped_min[self.organization_columns[1]] = df_grouped_min[self.organization_columns[1]].astype(str)
 
             df_log = df_log.merge(df_grouped_min, on=self.organization_columns, how='left')
@@ -306,7 +306,7 @@ class DataAnonymizer:
                         
                         # Ensure that the parent and child columns are strings
                         df_minimum[self.organization_columns[0]] = df_minimum[self.organization_columns[0]].astype(str)
-                        if self.organization_columns[1] is not None:
+                        if len(self.organization_columns) > 1 and self.organization_columns[1] is not None: 
                             df_minimum[self.organization_columns[1]] = df_minimum[self.organization_columns[1]].astype(str)
 
                         df_minimum_redacted = df_summed_less_than.merge(df_minimum, on = ['Grouping'] + self.organization_columns + list_combination)
