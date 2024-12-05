@@ -35,12 +35,12 @@ As a prerequisite you must have [Docker installed](https://docs.docker.com/engin
 To run the Docker image, you must first pull it from Docker Hub using the following command:
 
 ```bash
-docker pull p20communityofinnovation/dart_ui:latest
+docker pull p20wcommunityofinnovation/dart_ui:latest
 ```
 If desired, you may pull a specific release of DAR-T by using the following command:
 
 ```bash
-docker p20communityofinnovation/dart_ui:<release-tag>
+docker p20wcommunityofinnovation/dart_ui:<release-tag>
 ```
 Then run:
 
