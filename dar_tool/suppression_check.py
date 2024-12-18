@@ -1,30 +1,37 @@
+
 import pandas as pd
-import logging
+#import logging
 from itertools import combinations
 
 from pandas import DataFrame
 
+from util import LogUtil
+
 # Configure logging
-logger = logging.getLogger(__name__)
-logger.setLevel(
-    logging.INFO)  # Sets lowest level logger will handle. Debug level messages will be ignored with this setting.
+# logger = logging.getLogger(__name__)
+# logger.setLevel(
+#     logging.INFO)  # Sets lowest level logger will handle. Debug level messages will be ignored with this setting.
+#
+# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+# handler = logging.StreamHandler()  # Sends logs to console by default
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()  # Sends logs to console by default
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
-
+logger = LogUtil.create_logger(__name__)
 class DataAnonymizer:
+
+
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column.
-    def __init__(self, df: DataFrame, parent_organization=None, child_organization=None, sensitive_columns=None,
-                 frequency=None, redact_column=None, minimum_threshold=10, redact_zero=False, redact_value=None):
+    def __init__(self, df: DataFrame, parent_organization:str = None, child_organization:str=None, sensitive_columns=None,
+                 frequency: str = None, redact_column:str=None, minimum_threshold:int=10, redact_zero:bool
+                 =False, redact_value:str=None):
 
         self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column,
                              minimum_threshold, redact_zero)  # Validating user inputs
 
         self.original_columns = df.columns.tolist()
-        logger.info('original_columns that came:%s', self.original_columns)
+        logger.info('original_columns that came>>%s', self.original_columns)
 
         if (child_organization is None) & (parent_organization is None):
             organization_columns = None
@@ -62,6 +69,7 @@ class DataAnonymizer:
         self.child_organization = child_organization
         self.redact_zero = redact_zero
         self.redact_value = redact_value
+
 
     def validate_inputs(self, df, parent_organization, child_organization, sensitive_columns, frequency, redact_column,
                         minimum_threshold, redact_zero):
@@ -176,11 +184,18 @@ class DataAnonymizer:
             for organization_column in self.organization_columns:
                 for sensitive_combination in self.sensitive_combinations:
                     group_by_col: list = [organization_column] + list(sensitive_combination)
-                    logger.info('group_by_col:%s,frequency_col:%s', group_by_col, self.frequency)
+                    logger.info('group_by_col>>%s,frequency_col>>%s', group_by_col, self.frequency)
 
-                    ## count the frequency column on group_by_col
-                    ## eg if frequency is GraduationCount and group_by_col is ['ParentEntity', 'Subgroup1'] count the
-                    ## sum of GraduationCount and group by ['ParentEntity', 'Subgroup1']
+                    """
+                    sum of GraduationCount for group of ParentEntity1, SubGroup1 SubGroup2
+                    group_by_col is an array of columns
+                    For eg
+                    
+                    select ParentEntity1, SubGroup1 SubGroup2, sum(GraduationCount) from record_table
+                    group by ParentEntity1, SubGroup1 SubGroup2
+                    
+                    and assigning result  to a new table called df_grouped
+                    """
                     df_grouped: DataFrame = self.df.groupby(group_by_col)[self.frequency].sum().reset_index()
                     logger.info('df_grouped>>>')
                     logger.info("****")
@@ -189,18 +204,45 @@ class DataAnonymizer:
                         # assigning a new column Grouping and give current grouping_value
                         df_grouped.loc[:, 'Grouping'] = grouping_value
                         logger.info('after adding grouping')
-                        print(df_grouped)
+                        
                         grouping_value += 1
+                        """
+                        records where GraduationCount column value > threshold
+                        select * from df_grouped where GraduationCount > 10
+                        assign result to new record assigning to   df_not_redacted
+                        from df_grouped 
+                        """
                         df_not_redacted = df_grouped[df_grouped[self.frequency] > self.minimum_threshold]
+
+                        """
+                        min of frequency column and group by organization_column
+                        here organization_column = ParentEntity
+                        frequency = GraduationCount
+                        This is 
+                        select ParentEntity,min(GraduationCount) from df_not_redacted
+                        """
                         df_grouped_min = df_not_redacted.groupby([organization_column])[
                             self.frequency].min().reset_index()
+                        ## rename GraduationCount to MinimumValue
                         df_grouped_min = df_grouped_min.rename(columns={self.frequency: "MinimumValue"})
 
                         # Ensure that the parent and child columns are strings
                         df_grouped_min[organization_column] = df_grouped_min[organization_column].astype(str)
-
+                        """Join df_grouped and df_grouped_min on organization_column 
+                        select * from df_grouped df
+                        join df_grouped_min dfn left join df.organization_column = dfn
+                        and assign the result back to df_group
+                        """
                         df_grouped = df_grouped.merge(df_grouped_min, on=[organization_column], how='left')
+                        """This is a union
+                        select * from df_dataframes
+                        union
+                        select * from df_grouped
+                        
+                        assign the result to df_dataframes
+                        """
                         df_dataframes = pd.concat([df_dataframes, df_grouped], ignore_index=True)
+                        logger.info('For Group>>%s,values\n>>%s',df_dataframes.columns,df_dataframes)
         if self.parent_organization is not None:
             df_grouped: DataFrame = self.df.groupby([self.parent_organization])[self.frequency].sum().reset_index()
 
@@ -230,8 +272,8 @@ class DataAnonymizer:
                     df_dataframes = df_dataframes.merge(df_grouped_min, on=['Grouping'] + list_combination, how='left')
 
         self.df.loc[:, 'Grouping'] = grouping_value
-        df_log = pd.concat([df_dataframes, self.df])
-
+        df_log:DataFrame = pd.concat([df_dataframes, self.df])
+        duplicate_columns:list[str | list[str]] = []
         if self.organization_columns[0] is not None and self.redact_column is not None:
             duplicate_columns = self.organization_columns + self.sensitive_columns + [self.frequency] + [
                 self.redact_column]
@@ -277,20 +319,39 @@ class DataAnonymizer:
         self.df_log.loc[:, 'RedactBreakdown'] = 'Not Redacted'
 
         logger.info('Log created!')
-        # print(self.df_log.to_string())
         return self.df_log
 
     # Develop script to autopopulate log for each function
-    def data_logger(self, filter_value, redact_name, redact_breakdown_name):
 
+    def data_logger(self, filter_value, redact_name, redact_breakdown_name):
+        """Updates
+            column RedactBreakdown,
+            column Redact and
+            column RedactBinary to 1
+            based on certain where conditions
+        Args:
+            filter_value: This is actually where condition provided  by the caller
+            redact_name: This value is used to update column Redact
+            redact_breakdown_name: This is used to update column RedactBreakdown
+        Returns:
+                None
+        """
+        # Update RedactBreakdown column append comma if filter condition matches
         self.df_log.loc[filter_value & (self.df_log['Redact'] != 'User-requested redaction'), 'RedactBreakdown'] += ', '
+        # Update column RedactBreakdown by replacing  'Not Redacted' to ', '
         self.df_log.loc[:, 'RedactBreakdown'] = self.df_log['RedactBreakdown'].str.replace('Not Redacted, ', '')
+
+        # Update column RedactBreakdown with redact_breakdown_name field value
+        # if filter_value condition matches and Redact column != 'User-requested redaction'
         self.df_log.loc[filter_value & (
                     self.df_log['Redact'] != 'User-requested redaction'), 'RedactBreakdown'] += redact_breakdown_name
+        # Update column Redact with redact_name field value
         self.df_log.loc[filter_value & (self.df_log['RedactBinary'] != 1), 'Redact'] = redact_name
+
+        # Update column RedactBinary with 1 if some condition match
         self.df_log.loc[filter_value & (self.df_log['RedactBinary'] != 1), 'RedactBinary'] = 1
 
-    # Take value given by user and apply to log
+        # Take value given by user and apply to log
     def redact_user_requested_records(self):
         logger.info('Seeing if user redact column exists.')
         if self.redact_column is not None:
@@ -328,7 +389,7 @@ class DataAnonymizer:
     # Method to redact values in the dataframe that are the sum of minimum threshold
     def sum_redact(self):
         # Filter rows where the value in column specified by 'frequency' is less than 'minimum_threshold' but not zero
-        df_log_na = self.df_log.copy()
+        df_log_na:DataFrame = self.df_log.copy()
 
         temp_value = 'NaFill'
 
@@ -339,27 +400,25 @@ class DataAnonymizer:
             for sensitive_combination in self.sensitive_combinations:
                 list_combination = list(sensitive_combination)
                 if list_combination != self.sensitive_columns:
+                    sum_redact_group_col = ['Grouping'] + self.organization_columns + list_combination
+                    logger.info('sum_redact_group_col>>%s',sum_redact_group_col)
                     string_combination = ''.join(list_combination)
-                    df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
-                    df_summed_value = \
-                    df_redact_less.groupby(['Grouping'] + self.organization_columns + list_combination)[
-                        self.frequency].sum().reset_index()
-                    df_summed_less_than = df_summed_value[df_summed_value[self.frequency] <= self.minimum_threshold]
-                    if not df_summed_less_than.empty:
+                    df_redacted = df_log_na[df_log_na['RedactBinary'] == 1]
+                    df_sum_of_frequency_group_redacted = df_redacted.groupby(sum_redact_group_col)[self.frequency].sum().reset_index()
+                    df_less_than_threshold_from_redacted = df_sum_of_frequency_group_redacted[df_sum_of_frequency_group_redacted[self.frequency] <= self.minimum_threshold]
+                    if not df_less_than_threshold_from_redacted.empty:
                         df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-                        df_minimum = \
-                        df_not_redacted.groupby(['Grouping'] + self.organization_columns + list_combination,
-                                                dropna=False)[self.frequency].min().reset_index()
-                        df_minimum = df_minimum.rename(columns={self.frequency: 'LastMiniumValue'})
+                        df_minimum_from_not_redacted = \
+                        df_not_redacted.groupby(sum_redact_group_col,dropna=False)[self.frequency].min().reset_index()
+                        df_minimum_from_not_redacted = df_minimum_from_not_redacted.rename(columns={self.frequency: 'LastMiniumValue'})
 
                         # Ensure that the parent and child columns are strings
-                        df_minimum[self.organization_columns[0]] = df_minimum[self.organization_columns[0]].astype(str)
+                        df_minimum_from_not_redacted[self.organization_columns[0]] = df_minimum_from_not_redacted[self.organization_columns[0]].astype(str)
                         if len(self.organization_columns) > 1 and self.organization_columns[1] is not None:
-                            df_minimum[self.organization_columns[1]] = df_minimum[self.organization_columns[1]].astype(
+                            df_minimum_from_not_redacted[self.organization_columns[1]] = df_minimum_from_not_redacted[self.organization_columns[1]].astype(
                                 str)
 
-                        df_minimum_redacted = df_summed_less_than.merge(df_minimum, on=[
-                                                                                           'Grouping'] + self.organization_columns + list_combination)
+                        df_minimum_redacted = df_less_than_threshold_from_redacted.merge(df_minimum_from_not_redacted, on=sum_redact_group_col)
                         df_minimum_redacted = df_minimum_redacted[
                             ['Grouping'] + self.organization_columns + list_combination + ['LastMiniumValue']]
                         df_minimum_one = df_log_na.merge(df_minimum_redacted,
@@ -370,13 +429,13 @@ class DataAnonymizer:
                         df_log_na.loc[condition, 'Redact'] = 'Secondary Suppression'
                         df_log_na.loc[condition, 'RedactBreakdown'] += ', Sum of values less than threshold'
         elif len(self.sensitive_combinations) == 1:
-            df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
-            df_summed_value = df_redact_less.groupby(['Grouping'], dropna=False)[self.frequency].sum().reset_index()
-            df_summed_less_than = df_summed_value[df_summed_value[self.frequency] <= self.minimum_threshold]
+            df_redacted = df_log_na[df_log_na['RedactBinary'] == 1]
+            df_sum_of_frequency_group_redacted = df_redacted.groupby(['Grouping'], dropna=False)[self.frequency].sum().reset_index()
+            df_less_than_threshold_from_redacted = df_sum_of_frequency_group_redacted[df_sum_of_frequency_group_redacted[self.frequency] <= self.minimum_threshold]
             df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-            df_minimum = df_not_redacted.groupby(['Grouping'], dropna=False)[self.frequency].min().reset_index()
-            df_minimum = df_minimum.rename(columns={self.frequency: 'LastMiniumValue'})
-            df_minimum_redacted = df_summed_less_than.merge(df_minimum, on=['Grouping'])
+            df_minimum_from_not_redacted = df_not_redacted.groupby(['Grouping'], dropna=False)[self.frequency].min().reset_index()
+            df_minimum_from_not_redacted = df_minimum_from_not_redacted.rename(columns={self.frequency: 'LastMiniumValue'})
+            df_minimum_redacted = df_less_than_threshold_from_redacted.merge(df_minimum_from_not_redacted, on=['Grouping'])
             df_minimum_redacted = df_minimum_redacted[['Grouping'] + ['LastMiniumValue']]
             df_minimum_one = df_log_na.merge(df_minimum_redacted, on=['Grouping'], how='left')
             condition = (df_minimum_one[self.frequency] == df_minimum_one['LastMiniumValue'])
@@ -388,16 +447,16 @@ class DataAnonymizer:
                 list_combination = list(sensitive_combination)
                 if list_combination != self.sensitive_columns:
                     string_combination = ''.join(list_combination)
-                    df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
-                    df_summed_value = df_redact_less.groupby(['Grouping'] + list_combination, dropna=False)[
+                    df_redacted = df_log_na[df_log_na['RedactBinary'] == 1]
+                    df_sum_of_frequency_group_redacted = df_redacted.groupby(['Grouping'] + list_combination, dropna=False)[
                         self.frequency].sum().reset_index()
-                    df_summed_less_than = df_summed_value[df_summed_value[self.frequency] <= self.minimum_threshold]
-                    if not df_summed_less_than.empty:
+                    df_less_than_threshold_from_redacted = df_sum_of_frequency_group_redacted[df_sum_of_frequency_group_redacted[self.frequency] <= self.minimum_threshold]
+                    if not df_less_than_threshold_from_redacted.empty:
                         df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-                        df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[
+                        df_minimum_from_not_redacted = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[
                             self.frequency].min().reset_index()
-                        df_minimum = df_minimum.rename(columns={self.frequency: 'LastMiniumValue'})
-                        df_minimum_redacted = df_summed_less_than.merge(df_minimum, on=['Grouping'] + list_combination)
+                        df_minimum_from_not_redacted = df_minimum_from_not_redacted.rename(columns={self.frequency: 'LastMiniumValue'})
+                        df_minimum_redacted = df_less_than_threshold_from_redacted.merge(df_minimum_from_not_redacted, on=['Grouping'] + list_combination)
                         df_minimum_redacted = df_minimum_redacted[['Grouping'] + list_combination + ['LastMiniumValue']]
                         df_minimum_one = df_log_na.merge(df_minimum_redacted, on=['Grouping'] + list_combination,
                                                          how='left')
@@ -714,7 +773,7 @@ class DataAnonymizer:
     # Integrate log into main dataframe
     def apply_log(self):
         logger.info('Start applying log to given dataframe.')
-        logger.info("original columns:%s", self.df.columns.tolist())
+        logger.info(f'original columns>>{self.df.columns}')
         if self.organization_columns[0] is not None:
             df_redacted = self.df.merge(self.df_log,
                                         on=self.organization_columns + self.sensitive_columns + [self.frequency],
@@ -722,26 +781,28 @@ class DataAnonymizer:
             columns = self.organization_columns + self.sensitive_columns + [self.frequency] + ['RedactBinary', 'Redact',
                                                                                                'RedactBreakdown']
             # columns = list(set(columns) | set(self.df.columns))
-            logger.info("organization_columns not null columns:%s", columns)
+            logger.info("organization_columns not null columns>>%s", str(columns))
         else:
             df_redacted = self.df.merge(self.df_log, on=self.sensitive_columns + [self.frequency], how='inner')
             columns = self.sensitive_columns + [self.frequency] + ['RedactBinary', 'Redact', 'RedactBreakdown']
-            logger.info("organization_columns is null columns:%s", columns)
+            logger.info("organization_columns is null columns>>{columns}", )
             # columns = list(set(columns) | set(self.df.columns))
         if self.redact_column is not None:
             columns = columns + [self.redact_column]
 
-        logger.info("df_redacted columns before selection%s", df_redacted.columns.tolist())
-        logger.info("In Apply Log columns to use:%s", columns)
+        logger.info(f'df_redacted columns before selection>>+{df_redacted.columns}')
+        logger.info(f"In Apply Log columns to use>>{str(columns)}")
         absent_cols = list(set(self.original_columns) - set(columns))
         rename_hash = {}
         for index, item in enumerate(absent_cols):
             absent_cols[index] = item + '_x'
             rename_hash[absent_cols[index]] = item
 
-        logger.info('absent_cols:%s,rename_hash:%s', absent_cols, rename_hash)
-        columns = columns + absent_cols
-        logger.info('columns after adding absent_cols:%s', absent_cols)
+        logger.info(f'absent_cols>>,rename_hash >>{str(absent_cols)+":"+str(rename_hash)}')
+        columns =  columns + absent_cols
+        logger.info(f'columns after adding absent_cols >>{str(absent_cols)}')
+        msg = f'columns after adding absent_cols >>{absent_cols}'
+        print(msg)
         df_redacted = df_redacted[columns]
         df_redacted = df_redacted.rename(columns=rename_hash)
 
@@ -753,7 +814,7 @@ class DataAnonymizer:
         self.df_redacted = df_redacted
 
         logger.info('Finished applying log to given dataframe!')
-        print(self.df_redacted.to_string())
+        # print(self.df_redacted.to_string())
         return self.df_redacted
 
     # New method to call the specified functions
@@ -770,6 +831,7 @@ class DataAnonymizer:
         self.redact_user_requested_records()
 
         # Call less_than_threshold
+        # Do Primary Suppression
         self.less_than_threshold()
 
         # Call sum_redact
@@ -788,4 +850,6 @@ class DataAnonymizer:
         self.apply_log()
 
         # Return the updated dataframe
+
         return self.df_redacted
+
