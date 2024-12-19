@@ -1,7 +1,12 @@
+from collections import OrderedDict
+
 import numpy as np
 import pytest
 import pandas as pd
+
+from dar_tool_utility import utility
 from dar_tool.suppression_check import DataAnonymizer
+
 
 ###Unit tests###
         
@@ -52,7 +57,7 @@ def test_redact_user_requested_records(parent_org, child_org, redact_column):
     """
     Test if 'User-requested redaction' is added to all columns where user specifies redaction
     """
-
+    frequency = 'CohortCount'
     anonymizer = DataAnonymizer(pd.read_csv('./data/TestingData.csv'), parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], frequency='GraduationCount', redact_column=redact_column)
     
     result_df = anonymizer.apply_anonymization()
@@ -60,6 +65,19 @@ def test_redact_user_requested_records(parent_org, child_org, redact_column):
     print(result_df[['RedactBreakdown','UserRedaction']])
     
     assert(result_df.loc[(result_df[redact_column] == 1), 'RedactBreakdown'].str.contains('User-requested redaction')).all()
+
+@pytest.mark.parametrize("parent_org, child_org, redact_column", [('ParentEntity', 'ChildEntity', 'UserRedaction')])
+def test_redact_user_requested_records_multiple_frequency(parent_org, child_org, redact_column):
+    df = pd.read_csv('./data/TestingData.csv')
+    sensitive_columns = ['Subgroup1', 'Subgroup2']
+    frequency = ['GraduationCount','CohortCount']
+    redact_column=redact_column
+    redact_value = 'xx'
+    df_merged = utility.process_multiple_frequency_col(df,parent_org,child_org,sensitive_columns,frequency_columns=frequency,redact_column=redact_column,minimum_threshold=10
+                                           ,redact_zero=False,redact_value=redact_value
+                                           )
+    print("done test_redact_user_requested_records_multiple_frequency")
+    print(df_merged)
 
 
 @pytest.mark.parametrize("parent_org, child_org, redact_column", [('ParentEntity', 'ChildEntity', None)])
