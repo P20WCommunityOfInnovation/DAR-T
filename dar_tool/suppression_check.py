@@ -1,4 +1,6 @@
 
+import random
+import numpy as np
 import pandas as pd
 #import logging
 from itertools import combinations
@@ -19,14 +21,51 @@ from util import LogUtil
 
 
 logger = LogUtil.create_logger(__name__)
+
+class RangeSuppressionModel:
+    def __init__(self,total_col:str,sub_col:str,rate_col:str,threshold_val: int,dat_reason_col = 'DAT_Reason',dat_reason_col_value = 'Top/Bottom'):
+        self.total_col = total_col #eg TotalStudents
+        self.sub_col = sub_col #eg NumberGraduated
+        self.rate_col = rate_col #eg GraduationRate
+        self.threshold_val = threshold_val #eg 3
+        self.total_col_unprotected = total_col+'_Unprotected' #eg TotalStudents_Unprotected
+        self.sub_col_uprotected = sub_col+'_Unprotected' #eg NumberGraduated_Unprotected
+        self.rate_col_unprotected = rate_col+'_Unprotected' #eg GraduationRate_Unprotected
+        
+        """This columns is modified by method @tail_suppression_based_on_range"""
+        self.total_fuzzy_col = total_col+'_fuzzy' #eg TotalStudents_fuzzy
+        self.dat_reason_col = dat_reason_col #eg DAT_Reason
+        self.dat_reason_col_value = dat_reason_col_value #eg Top/Bottom
+        
+        
+        logger.info('RangeSuppressionModel created with value>>%s',self.__str__())
+
+    def __str__(self):
+        return (f"SuppressionCheck(total_col={self.total_col}, sub_col={self.sub_col}, "
+                f"rate_col={self.rate_col}, threshold_val={self.threshold_val}, "
+                f"total_col_unprotected={self.total_col_unprotected}, "
+                f"sub_col_uprotected={self.sub_col_uprotected}, "
+                f"rate_col_unprotected={self.rate_col_unprotected}, "
+                f"total_fuzzy_col={self.total_fuzzy_col}, "
+                f"dat_reason_col={self.dat_reason_col}, "
+                f"dat_reason_col_value={self.dat_reason_col_value})")        
+                           
 class DataAnonymizer:
 
 
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column.
     def __init__(self, df: DataFrame, parent_organization:str = None, child_organization:str=None, sensitive_columns=None,
                  frequency: str = None, redact_column:str=None, minimum_threshold:int=10, redact_zero:bool
-                 =False, redact_value:str=None):
+                 =False, redact_value:str=None,range_suppression_model:RangeSuppressionModel=None):
 
+        self.range_suppression_model = range_suppression_model
+        if self.range_suppression_model is not None:
+            # Create a copy of the input dataframe and store it as an instance variable
+            self.df: DataFrame = df.copy()
+            logger.info('Range suppression model is not None')
+            logger.info('Skipping the validation of inputs')
+            return
+        
         self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column,
                              minimum_threshold, redact_zero)  # Validating user inputs
 
@@ -822,9 +861,103 @@ class DataAnonymizer:
         logger.info('Pulling log from class.')
         logger.info('Log returned from class!')
         return self.df_log
+     
+    """
+    in  var args
+    every other element starting from 0 index is condition
+    ever other element starting from 1 index is the value for that condition
+    so say there are 8 length tuple 
+    ( 
+    ('one' == some_value), 1,
+    ('two' == some_value), 2,
+    ('three' == some_value),3,
+    ('four' == some_value),4
+    )
+    for index 0 condition truthy value 1 is returned
+    for index 1 condition truthy value 2 is returned
+    for index 2 condition truthy value 3 is returned
+    for index 3 condition truthy value 4 is returned
 
+    so forth 
+    """          
+    def case_when(self,*args):
+        return np.select(
+            condlist = args[::2], #every other element starting from 0 index is condition
+            choicelist = args[1::2] #every other element starting from 1 index is value or choice for that condition
+        )
+
+    def apply_suppress_value(self,row:pd.DataFrame):
+        copy_model = self.range_suppression_model
+        total_fuzzy = row[self.range_suppression_model.total_fuzzy_col]
+        logger.info("Inside apply_suppress_value fuzzy: %s", total_fuzzy)
+        decimal_precision = 2
+        if total_fuzzy >= 101 and total_fuzzy <= 1000:
+            decimal_precision = 3
+        elif total_fuzzy >= 1001 and total_fuzzy <= 10000:
+            decimal_precision = 4
+        elif total_fuzzy >= 10001 and total_fuzzy <= 100000:
+            decimal_precision = 5
+        
+        logger.info("Inside apply_suppress_value precision value: %s", decimal_precision)
+        retval = None
+        calc = 0
+        if row[copy_model.sub_col_uprotected] < copy_model.threshold_val:
+            calc = int(copy_model.threshold_val/total_fuzzy)*100
+            retval = f"<{calc:.{decimal_precision}f}%"
+            logger.info("rate_col_unprotected less threshold: %s", retval)
+
+        elif (row[copy_model.total_col_unprotected] - row[copy_model.sub_col_uprotected]) < copy_model.threshold_val:
+            calc = (1-int(copy_model.threshold_val/total_fuzzy))*100
+            retval = f">{calc:.{decimal_precision}f}%"
+            logger.info("total_col_unprotected - rate_col_unprotected less threshold: %s", retval)    
+        else:
+            retval = f"{row[copy_model.rate_col_unprotected]:.{4}f}%"
+        
+        return retval
+
+     
+
+    def tail_suppression_based_on_range(self):
+        
+        logger.info("Inside tail_suppression_based_on_range")
+        logger.info("range_suppression_model value:%s>>",self.range_suppression_model)
+        copy_df = self.df.copy()
+        copy_model = self.range_suppression_model
+        
+        #making a copy because we will be modiying the original total_col,sub_col,rate_col soon
+        copy_df[copy_model.total_col_unprotected] = copy_df[copy_model.total_col] # copying columns TotalStudents to columns TotalStudents_Unprotected
+        copy_df[copy_model.sub_col_uprotected] = copy_df[copy_model.sub_col] # copying NumberGraduated to NumberGraduated_Unprotected
+        copy_df[copy_model.rate_col_unprotected] = copy_df[copy_model.rate_col] # copying GraduationRate to GraduationRate_Unprotected
+
+        """
+        creating total_fuzzy column if the random vluae is less than 0.5 then we add 1 to the total_col_unprotected
+        """        
+        copy_df[copy_model.total_fuzzy_col] = (copy_df[copy_model.total_col_unprotected] + 1) if (random.uniform(0, 1) < 0.5) else copy_df[copy_model.total_col_unprotected]
+            
+        copy_df[copy_model.dat_reason_col] = ''
+        """
+        if sub_col eg. NumberGraduated is less than threshold eg (3) 
+        or total_col eg(TotalStudents) - sub_col eg(NumberGraduated) is less than threshold_col eg(3)  then we set total_col,sub_col to nan ,dat_reason_col to what ever given
+        """
+        condition = (copy_df[copy_model.sub_col] < copy_model.threshold_val) | (copy_df[copy_model.total_col] - copy_df[copy_model.sub_col] < copy_model.threshold_val)
+        col_to_update = [copy_model.total_col, copy_model.sub_col, copy_model.dat_reason_col]
+        copy_df.loc[ condition, col_to_update] = [np.nan,np.nan,copy_model.dat_reason_col_value]
+
+        """
+        eg. the GraduationRate column is updated based on apply_suppress_value logic function
+        """
+        copy_df[copy_model.rate_col] = copy_df.apply(self.apply_suppress_value, axis=1)
+
+        print("")
+        print(copy_df) 
+        return copy_df 
+          
     def apply_anonymization(self):
-
+           
+         
+        if hasattr(self,'range_suppression_model') and self.range_suppression_model is not None: 
+            return self.tail_suppression_based_on_range()
+        
         self.create_log()
 
         # Call redact_user_requested_records
