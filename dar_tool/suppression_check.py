@@ -20,10 +20,13 @@ from util import LogUtil
 # logger.addHandler(handler)
 
 
-logger = LogUtil.create_logger(__name__)
+
 
 class RangeSuppressionModel:
-    def __init__(self,total_col:str,sub_col:str,rate_col:str,threshold_val: int,dat_reason_col = 'DAT_Reason',dat_reason_col_value = 'Top/Bottom'):
+   
+    def __init__(self,total_col:str =None,sub_col=None,rate_col=None,threshold_val=None,dat_reason_col = 'DAT_Reason',dat_reason_col_value = 'Top/Bottom'):
+
+        self.validate(total_col,sub_col,rate_col,threshold_val)
         self.total_col = total_col #eg TotalStudents
         self.sub_col = sub_col #eg NumberGraduated
         self.rate_col = rate_col #eg GraduationRate
@@ -38,7 +41,11 @@ class RangeSuppressionModel:
         self.dat_reason_col_value = dat_reason_col_value #eg Top/Bottom
         
         
-        logger.info('RangeSuppressionModel created with value>>%s',self.__str__())
+        print('RangeSuppressionModel created with value>>%s',self.__str__())
+
+    def validate(self,total_col=None,sub_col=None,rate_col=None,threshold_val=None):
+        if total_col is None or sub_col is None or rate_col is None or threshold_val is None:
+            raise ValueError("All parameters total_col , sub_col ,rate_col ,threshold_val   required")
 
     def __str__(self):
         return (f"SuppressionCheck(total_col={self.total_col}, sub_col={self.sub_col}, "
@@ -50,9 +57,10 @@ class RangeSuppressionModel:
                 f"dat_reason_col={self.dat_reason_col}, "
                 f"dat_reason_col_value={self.dat_reason_col_value})")        
                            
+logger = LogUtil.create_logger(__name__)
 class DataAnonymizer:
 
-
+   
     # Initialize the class with a dataframe (df) and optionally, a list of sensitive columns, organization columns, and user specified redaction column.
     def __init__(self, df: DataFrame, parent_organization:str = None, child_organization:str=None, sensitive_columns=None,
                  frequency: str = None, redact_column:str=None, minimum_threshold:int=10, redact_zero:bool
@@ -862,34 +870,24 @@ class DataAnonymizer:
         logger.info('Log returned from class!')
         return self.df_log
      
-    """
-    in  var args
-    every other element starting from 0 index is condition
-    ever other element starting from 1 index is the value for that condition
-    so say there are 8 length tuple 
-    ( 
-    ('one' == some_value), 1,
-    ('two' == some_value), 2,
-    ('three' == some_value),3,
-    ('four' == some_value),4
-    )
-    for index 0 condition truthy value 1 is returned
-    for index 1 condition truthy value 2 is returned
-    for index 2 condition truthy value 3 is returned
-    for index 3 condition truthy value 4 is returned
 
-    so forth 
-    """          
-    def case_when(self,*args):
-        return np.select(
-            condlist = args[::2], #every other element starting from 0 index is condition
-            choicelist = args[1::2] #every other element starting from 1 index is value or choice for that condition
-        )
-
-    def apply_suppress_value(self,row:pd.DataFrame):
+    def apply_suppress_value_based_total_and_sub_total(self,row:pd.Series):
+        """
+            for ex. sub_col_uprotected(NumberGraduated) is less than threshold_val(3)
+            then the column value for rate_col is eg <{some_value}with decimal precision%
+            or
+            for ex. total_col_unprotected(TotalStudents) - sub_col_uprotected(NumberGraduated) is less than threshold_val(3)
+            then the column value for rate_col is eg >{some_value}with decimal precision%
+            
+            other wise return the original rate_col_unprotected(GraduationRate) value with decimal precision%
+        """
         copy_model = self.range_suppression_model
         total_fuzzy = row[self.range_suppression_model.total_fuzzy_col]
-        logger.info("Inside apply_suppress_value fuzzy: %s", total_fuzzy)
+        #logger.info("Inside apply_suppress_value fuzzy: %s", total_fuzzy)
+        """
+        decimal_precision how many digits after decimal point
+        based on the total_fuzzy value decimal_precision is set
+        """
         decimal_precision = 2
         if total_fuzzy >= 101 and total_fuzzy <= 1000:
             decimal_precision = 3
@@ -898,19 +896,25 @@ class DataAnonymizer:
         elif total_fuzzy >= 10001 and total_fuzzy <= 100000:
             decimal_precision = 5
         
-        logger.info("Inside apply_suppress_value precision value: %s", decimal_precision)
+        #logger.info("Inside apply_suppress_value precision value: %s", decimal_precision)
         retval = None
         calc = 0
+        """
+        for eg sub_col_uprotected(NumberGraduated) is less than threshold_val(3)
+        then the column value for rate_col is eg <{some_value}with decimal precision%
+        """
         if row[copy_model.sub_col_uprotected] < copy_model.threshold_val:
             calc = int(copy_model.threshold_val/total_fuzzy)*100
             retval = f"<{calc:.{decimal_precision}f}%"
-            logger.info("rate_col_unprotected less threshold: %s", retval)
-
+            #logger.info("rate_col_unprotected less threshold: %s", retval)
+        # for eg total_col_unprotected(TotalStudents) - sub_col_uprotected(NumberGraduated) is less than threshold_val(3)
+        # then the column value for rate_col is eg >{some_value}with decimal precision%
         elif (row[copy_model.total_col_unprotected] - row[copy_model.sub_col_uprotected]) < copy_model.threshold_val:
             calc = (1-int(copy_model.threshold_val/total_fuzzy))*100
             retval = f">{calc:.{decimal_precision}f}%"
-            logger.info("total_col_unprotected - rate_col_unprotected less threshold: %s", retval)    
+            #logger.info("total_col_unprotected - rate_col_unprotected less threshold: %s", retval)    
         else:
+            #other wise return the original rate_col_unprotected(GraduationRate) value with decimal precision%
             retval = f"{row[copy_model.rate_col_unprotected]:.{4}f}%"
         
         return retval
@@ -918,7 +922,34 @@ class DataAnonymizer:
      
 
     def tail_suppression_based_on_range(self):
-        
+        """
+            This method is seperate from other anonymization methods
+            
+            When this method is being used, other anonymization methods will not be used
+            
+            The logic is derived from data/DART_Tutorial_Query.sql queries
+            
+            The example data csv is data/dart.csv
+            
+            To do this There a are 4 variables that is needed
+            
+            total_col = for eg. TotalStudents
+            
+            sub_col, = for eg. NumberGraduated
+            
+            rate_col, = for eg. GraduationRate
+            
+            threshold_val = for eg. 3
+            
+            The main logic is if sub_col less than threshold_val or total_col - sub_col less than threshold_val 
+            then we set rate_col value as suppressed perecentage
+            
+            and nullify the sub_col and total_col
+            
+            and introduce a new column dat_reason_col with a value given
+            
+            Also look at Class {@see} RowSuppressionModel
+        """        
         logger.info("Inside tail_suppression_based_on_range")
         logger.info("range_suppression_model value:%s>>",self.range_suppression_model)
         copy_df = self.df.copy()
@@ -946,7 +977,7 @@ class DataAnonymizer:
         """
         eg. the GraduationRate column is updated based on apply_suppress_value logic function
         """
-        copy_df[copy_model.rate_col] = copy_df.apply(self.apply_suppress_value, axis=1)
+        copy_df[copy_model.rate_col] = copy_df.apply(self.apply_suppress_value_based_total_and_sub_total, axis=1)
 
         print("")
         print(copy_df) 

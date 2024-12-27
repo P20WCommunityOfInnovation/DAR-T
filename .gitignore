@@ -56,3 +56,5 @@ examples/CreatedLog.csv
 
 *.DS_Store
 *.log
+
+*.egg-info
