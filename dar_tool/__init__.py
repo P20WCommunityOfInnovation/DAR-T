@@ -1,1 +1,1 @@
-from .suppression_check import DataAnonymizer
+from .suppression_check import DataAnonymizer, RangeSuppressionModel

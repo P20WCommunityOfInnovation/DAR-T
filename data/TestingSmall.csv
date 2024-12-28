@@ -1,0 +1,7 @@
+ParentEntity,ChildEntity,Subgroup1,Subgroup2,GraduationCount,CohortCount,GraduationRate,UserRedaction,TestRedactBinary,TestRedact,TestRedactionReason
+District1,School1,English Language Learner,Male,1,18,0.777777778,1,0,No Redaction,No Redaction
+District1,School1,Not English Language Learner,Male,20,22,0.909090909,0,1,Secondary Redaction,Next Smallest Value 4
+District1,School1,English Language Learner,Female,13,44,0.295454545,0,1,Secondary Redaction,Next Smallest Value 4
+District1,School1,Not English Language Learner,Female,7,45,0.155555556,0,1,Primary Redaction,Less than 11
+District1,School1,English Language Learner,Non-binary,17,40,0.425,0,0,No Redaction,No Redaction
+District1,School1,Not English Language Learner,Non-binary,22,33,0.666666667,0,0,No Redaction,No Redaction
