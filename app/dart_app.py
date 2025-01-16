@@ -60,7 +60,7 @@ if uploadedFile:
 
         redact_column = st.selectbox("User Specified Redaction Column", options= [None] + list(df.columns))
 
-        minimum_threshold = st.number_input('Specify the minimum threshold for supression', value= 10, min_value= 0)
+        minimum_threshold = st.number_input('Specify the minimum threshold for suppression', value= 10, min_value= 0)
 
         redact_zero = st.checkbox('Should zeroes be redacted?')
 
