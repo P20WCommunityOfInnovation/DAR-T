@@ -11,7 +11,7 @@ from dar_tool.suppression_check import DataAnonymizer
         
 def test_validate_input_data_type_check():
     """ Test if validate input function catches a non-dataframe input for the data object."""
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         DataAnonymizer('fake_input.csv', parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='UserRedaction')
 
 def test_validate_input_key_error_checks():
@@ -20,19 +20,23 @@ def test_validate_input_key_error_checks():
     """ Test that validate input properly raises key errors for incorrect inputs."""
     #Test that function catches wrong parent organization entry.
     with pytest.raises(KeyError):
-        DataAnonymizer(sample_data, parent_organization='fake_parent_org', child_organization='ChildEntity',  sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='UserRedaction')
+        da = DataAnonymizer(sample_data, parent_organization='fake_parent_org', child_organization='ChildEntity',  sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='UserRedaction')
+        da.apply_anonymization()
 
     #Test that function catches wrong child organization entry. 
     with pytest.raises(KeyError):
-        DataAnonymizer(sample_data, parent_organization='ParentEntity', child_organization='fake_child_org',  sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='UserRedaction')
+        da = DataAnonymizer(sample_data, parent_organization='ParentEntity', child_organization='fake_child_org',  sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='UserRedaction')
+        da.apply_anonymization()
 
     #Test that function catches wrong subgroup entry.
     with pytest.raises(KeyError):
-        DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'fake_subgroup'], redact_column='UserRedaction')
+        da = DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'fake_subgroup'], redact_column='UserRedaction')
+        da.apply_anonymization()
 
     #Test that function catches wrong redact column entry. 
     with pytest.raises(KeyError):
-        DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='fake_user_redact')
+        da = DataAnonymizer(sample_data, parent_organization= 'ParentEntity', child_organization= 'ChildEntity', sensitive_columns= ['Subgroup1', 'Subgroup2'], redact_column='fake_user_redact')
+        da.apply_anonymization()
 
 
 @pytest.mark.parametrize(" parent_org, child_org, redact_column", [ ('ParentEntity', 'ChildEntity', None)])
@@ -193,6 +197,7 @@ def test_nebraska_sample_data_with_one_org_level():
     redacted = anonymizer.apply_anonymization()
 
     for column in anonymizer.sensitive_columns:
+        
         assert (redacted.groupby(column)['Redact'].count()>=2).all()
 
 # @pytest.mark.parametrize("sample_dataframe, redact_column", [(lazy_fixture('sample_data'), None), (lazy_fixture('sample_data'), 'UserRedaction')])

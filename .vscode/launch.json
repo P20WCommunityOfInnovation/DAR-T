@@ -5,18 +5,29 @@
     "version": "0.2.0",
     "configurations": [
         {
-        "name": "Python: Streamlit",
-        "type": "debugpy",
-        "request": "launch",
-        "module": "streamlit",
-        "args": [
-          "run",
-          "${file}"
-        ],
-        "env": {
-          "PYTHONPATH": "${workspaceFolder}"
+            "name": "Debug Pytest Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "--maxfail=1",  // Stop after the first failure
+                "--disable-warnings"
+            ],
+            "justMyCode": true
         },
-        "cwd": "${workspaceFolder}/app"
-    },
+        {
+            "name": "Python: Streamlit",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "${file}"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "cwd": "${workspaceFolder}/app"
+        },
     ]
 }
