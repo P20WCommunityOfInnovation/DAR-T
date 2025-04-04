@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 import pandas as pd
 
-from dar_tool_utility import utility
 from dar_tool.suppression_check import DataAnonymizer
 
 
@@ -73,9 +72,8 @@ def test_redact_user_requested_records_multiple_frequency(parent_org, child_org,
     frequency = ['GraduationCount','CohortCount']
     redact_column=redact_column
     redact_value = 'xx'
-    df_merged = utility.process_multiple_frequency_col(df,parent_org,child_org,sensitive_columns,frequency_columns=frequency,redact_column=redact_column,minimum_threshold=10
-                                           ,redact_zero=False,redact_value=redact_value
-                                           )
+    anonymizer = DataAnonymizer(pd.read_csv('./data/TestingData.csv'), parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], , redact_column=redact_column)
+    df_merged = anonymizer.process_multiple_frequency_col(['GraduationCount','CohortCount'])
     print("done test_redact_user_requested_records_multiple_frequency")
     print(df_merged)
 
