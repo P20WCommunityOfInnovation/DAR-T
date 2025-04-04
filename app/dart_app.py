@@ -6,7 +6,6 @@ import streamlit as st
 
 import pandas as pd
 
-from dar_tool_utility.utility import  process_multiple_frequency_col
 from dar_tool.suppression_check import DataAnonymizer
 
 st.set_page_config(
@@ -23,7 +22,7 @@ st.set_page_config(
 left, middle, right = st.columns(3)
 
 with middle:
-    st.image(image="images/DAR-T_main_text.png", width = 1000)
+    st.image(image="images/DAR-T_main_text.png", width = 300)
 
 st.header("This tool is designed to support users with redacting sensitive records in aggregate files. By default this tool will redact records where the count is 10 or less and all additional records needed for complimentary suppression.")
 
@@ -140,11 +139,11 @@ if uploadedFile:
     
     if st.sidebar.button("Redact my dataset"):
 
-
-        df_merged = process_multiple_frequency_col(df, parent_organization=parent_org, child_organization=child_org,
-                                    sensitive_columns=sensitive_columns, frequency_columns=frequency_columns,
+        anonymizer = DataAnonymizer(df, parent_organization=parent_org, child_organization=child_org,
+                                    sensitive_columns=sensitive_columns, 
                                     minimum_threshold=minimum_threshold, redact_column=redact_column,
                                     redact_zero=redact_zero, redact_value=redact_value)
+        df_merged = anonymizer.process_multiple_frequency_col(frequency_columns)
 
         st.header("Redacted File")
         st.subheader("The file can be downloaded via the download icon in the top right of the table.")

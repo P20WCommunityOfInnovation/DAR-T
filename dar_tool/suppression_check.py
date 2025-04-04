@@ -27,9 +27,6 @@ class DataAnonymizer:
                  frequency: str = None, redact_column:str=None, minimum_threshold:int=10, redact_zero:bool
                  =False, redact_value:str=None):
 
-        self.validate_inputs(df, parent_organization, child_organization, sensitive_columns, frequency, redact_column,
-                             minimum_threshold, redact_zero)  # Validating user inputs
-
         self.original_columns = df.columns.tolist()
         logger.info('original_columns that came>>%s', self.original_columns)
 
@@ -770,6 +767,93 @@ class DataAnonymizer:
             'Completion of analysis if secondary redaction on aggregate levels needs to be applied to original dataframe.')
         return self.df_log
 
+
+    """
+    Will anonymize multiple frequency columns from the dataframe
+    for each frequency column call DataAnonymizer
+    and merge all of the redacted data set together into one
+    """
+    def process_multiple_frequency_col(self, frequency_columns):
+
+        logger.info('Inside process_multiple_frequency_col')
+
+        if frequency_columns is None:
+            raise Exception("frequency_columns is missing")
+
+        frequency_columns = frequency_columns if isinstance(frequency_columns,list)  else [frequency_columns]
+        frequency_column_len = len(frequency_columns)
+        initial_columns = self.df.columns.tolist()
+        cols_without_freq = [col for col in initial_columns if col not in frequency_columns]
+        df_copy_without_freq = self.df.loc[:, cols_without_freq]
+        
+        composite_key: list[str] = []
+        if self.parent_organization is not None:
+            composite_key.append(self.parent_organization)
+        if self.child_organization is not None:
+            composite_key.append(self.child_organization)
+        if self.sensitive_columns is not None:
+            composite_key.extend(self.sensitive_columns)
+            
+        #if only one frequency column just anonymize and return
+        if frequency_column_len == 1:
+            self.frequency = frequency_columns[0]
+            df_merged: DataFrame = self.apply_anonymization()
+            #df_merged = pd.merge(df_merged,df_copy_without_freq,on=composite_key,how="outer")
+            return df_merged
+
+
+        logger.info("found composite_key>>"+str(composite_key))
+
+        df_copy_arr = []
+
+        
+        for idx in range(frequency_column_len):
+            agg_colum = frequency_columns[idx]
+
+            # # get other freq cols than we are looping
+            other_freq_cols = [col for col in frequency_columns if col != agg_colum]
+
+            #from initial_columns get a column copy of current looping agg_colum or  that is not in other_freq_cols
+            select_cols = [col for col in initial_columns if col not in other_freq_cols]
+            logger.info('selecting cols for copy>>%s',select_cols,exc_info=1)
+
+            # will use this select_cols to select a new data frame from incoming datafram and add it to df_copy_arr
+            df_copy_arr.append( self.df.loc[:,select_cols] )
+
+        # first data frame , we will use to merge other frequency column redaction scenario
+        df_first:DataFrame = DataFrame()
+        for idx in range(frequency_column_len):
+
+            agg_colum = frequency_columns[idx]
+            self.frequency = agg_colum
+            logger.info("processing frequency column>>%s",str(agg_colum))
+            df_copy = df_copy_arr[idx]
+
+            df_merged: DataFrame = self.apply_anonymization()
+            #For each Redact** columns will append the _ and agg_colum to identify it
+            redact_key_pair_columns = {
+                'RedactBinary': 'RedactBinary_' + agg_colum,
+                'Redact': 'Redact_' + agg_colum,
+                'RedactBreakdown': 'RedactBreakdown_' + agg_colum
+            }
+
+            df_merged = df_merged.rename(columns=redact_key_pair_columns)
+            logger.info("df_merged cols>>%s",str(df_merged.columns.tolist()))
+            #First in the loop is the main dataframe will use to merge other anonymized datafram
+            if idx == 0:
+                df_first = df_merged
+            else:
+
+                other_freq_cols = composite_key + [agg_colum]+ list(redact_key_pair_columns.values())
+                df_merged = df_merged[other_freq_cols]
+                df_first = pd.merge(df_first,df_merged,on=composite_key,how="left")
+
+
+        #df_first = pd.merge(df_first,df_copy_without_freq,on=composite_key,how="left")
+        logger.info("done processing multiple frequency col")
+        return df_first
+
+
     # Integrate log into main dataframe
     def apply_log(self):
         logger.info('Start applying log to given dataframe.')
@@ -824,6 +908,9 @@ class DataAnonymizer:
         return self.df_log
 
     def apply_anonymization(self):
+
+        self.validate_inputs(self.df, self.parent_organization, self.child_organization, self.sensitive_columns, self.frequency, self.redact_column,
+                             self.minimum_threshold, self.redact_zero)  # Validating user inputs
 
         self.create_log()
 
