@@ -72,7 +72,7 @@ def test_redact_user_requested_records_multiple_frequency(parent_org, child_org,
     frequency = ['GraduationCount','CohortCount']
     redact_column=redact_column
     redact_value = 'xx'
-    anonymizer = DataAnonymizer(pd.read_csv('./data/TestingData.csv'), parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], , redact_column=redact_column)
+    anonymizer = DataAnonymizer(pd.read_csv('./data/TestingData.csv'), parent_organization = parent_org, child_organization = child_org, sensitive_columns=['Subgroup1', 'Subgroup2'], redact_column=redact_column)
     df_merged = anonymizer.process_multiple_frequency_col(['GraduationCount','CohortCount'])
     print("done test_redact_user_requested_records_multiple_frequency")
     print(df_merged)
