@@ -19,7 +19,7 @@ ipython_config.py
 .pytest_cache/*
 
 #venv
-.venv/*
+*.venv
 pyvenv.cfg
 
 #Libraries
@@ -53,3 +53,6 @@ data/NCLEACWDBLIDEAv112509.csv
 data/NCSCHCWDBLIDEAv112346.csv
 examples/ApplyAnonymization.csv
 examples/CreatedLog.csv
+
+*.DS_Store
+*.log
