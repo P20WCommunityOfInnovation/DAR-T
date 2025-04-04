@@ -7,7 +7,7 @@ import pandas as pd
 from dar_tool.suppression_check import DataAnonymizer
 
 
-###Unit tests###
+###Unit tests### 
         
 def test_validate_input_data_type_check():
     """ Test if validate input function catches a non-dataframe input for the data object."""
