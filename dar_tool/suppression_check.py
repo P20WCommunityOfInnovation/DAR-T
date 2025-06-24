@@ -601,22 +601,23 @@ class DataAnonymizer:
                 if list_combination != self.sensitive_columns:
                     string_combination = ''.join(list_combination)
                     df_redact_less = df_log_na[df_log_na['RedactBinary'] == 1]
-                    df_redact_less.loc[:, 'Redacted'] = 1
-                    df_count = df_redact_less.groupby(['Grouping'] + list_combination)['Redacted'].count().reset_index()
-                    df_one_redacted = df_count[df_count['Redacted'] == 1]
-                    if not df_one_redacted.empty:
-                        df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
-                        df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[
-                            self.frequency].min().reset_index()
-                        df_minimum = df_minimum.rename(columns={self.frequency: 'LastMiniumValue'})
-                        df_minimum_redacted = df_one_redacted.merge(df_minimum, on=['Grouping'] + list_combination)
-                        df_minimum_one = df_log_na.merge(df_minimum_redacted, on=['Grouping'] + list_combination,
-                                                         how='left')
-                        mask = (df_minimum_one[self.frequency] == df_minimum_one['LastMiniumValue'])
-                        df_log_na.loc[mask, 'RedactBinary'] = 1
-                        df_log_na.loc[mask, 'Redact'] = 'Secondary Suppression'
-                        df_log_na.loc[
-                            mask, 'RedactBreakdown'] += ', Redacting zeroes or other remaining values missed in one count function'
+                    if not df_redact_less.empty:
+                        df_redact_less.loc[:, 'Redacted'] = 1
+                        df_count = df_redact_less.groupby(['Grouping'] + list_combination)['Redacted'].count().reset_index()
+                        df_one_redacted = df_count[df_count['Redacted'] == 1]
+                        if not df_one_redacted.empty:
+                            df_not_redacted = df_log_na[df_log_na['RedactBinary'] != 1]
+                            df_minimum = df_not_redacted.groupby(['Grouping'] + list_combination, dropna=False)[
+                                self.frequency].min().reset_index()
+                            df_minimum = df_minimum.rename(columns={self.frequency: 'LastMiniumValue'})
+                            df_minimum_redacted = df_one_redacted.merge(df_minimum, on=['Grouping'] + list_combination)
+                            df_minimum_one = df_log_na.merge(df_minimum_redacted, on=['Grouping'] + list_combination,
+                                                            how='left')
+                            mask = (df_minimum_one[self.frequency] == df_minimum_one['LastMiniumValue'])
+                            df_log_na.loc[mask, 'RedactBinary'] = 1
+                            df_log_na.loc[mask, 'Redact'] = 'Secondary Suppression'
+                            df_log_na.loc[
+                                mask, 'RedactBreakdown'] += ', Redacting zeroes or other remaining values missed in one count function'
 
         self.df_log.loc[df_log_na['RedactBinary'] == 1, 'RedactBinary'] = 1
         self.df_log.loc[df_log_na['Redact'] == 'Secondary Suppression', 'Redact'] = 'Secondary Suppression'

@@ -162,6 +162,19 @@ def test_apply_anonymization_redacts_at_least_two_rows_per_sensitive_column(pare
     for column in anonymizer.sensitive_columns:
         assert (redacted.groupby(column)['Redact'].count()>=2).all()
 
+
+@pytest.mark.parametrize("parent_org, child_org, redact_column", [ ('ParentEntity', 'ChildEntity', None)])
+def test_apply_anonymization_when_no_rows_should_be_redacted(parent_org, child_org, redact_column):
+    """
+    Test a dataset that has only large numbers and thus no records are redacted.
+    """
+    anonymizer = DataAnonymizer(pd.read_csv('./data/NoRedaction.csv'), sensitive_columns=['proficiencystatus', 'assessmenttypeadministered'], frequency='assessmentcount', redact_zero=True, redact_value='0')
+    result_df = anonymizer.apply_anonymization()
+    redacted = result_df[result_df['Redact'] == 'Not Redacted']
+
+    assert (len(redacted) == len(result_df))
+
+
 def test_nebraska_sample_data_with_one_org_level():
     # Set seed for reproducibility
     np.random.seed(1234)
