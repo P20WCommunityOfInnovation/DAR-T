@@ -31,6 +31,15 @@ DAR-T also provides a Streamlit app for users which prefer interacting with a us
 Docker provides a pre-packaged container of all requirements and dependencies, so users do not need to install Python or packages. 
 
 As a prerequisite you must have [Docker installed](https://docs.docker.com/engine/install/) on your machine. 
+### Environment Variables
+    Customizations can be made to the Docker image by setting environment variables.
+    The following environment variables can be set when running the Docker image, otherwise the default values will be used:
+    PAGE_TITLE = This will set the title of the Streamlit page.
+    HEADER_IMAGE = This will set the header image of the Streamlit page. The image should be a valid http URL.
+    HEADER_TEXT = This will set the header text of the Streamlit page.
+    MIN_SUPPRESSION_THRESHOLD = This will set the minimum suppression threshold for redaction. The default value is 10
+    DISABLE_STREAMLIT_HAMBURGER = This will disable the Streamlit hamburger menu in the top right corner of the page. The default value is False.
+    CUSTOM_TOP_NAVIGATION_HTML = This will set a custom HTML navigation headers for the Streamlit page. The default value is None, which means no custom header will be used.
 
 To run the Docker image, you must first pull it from Docker Hub using the following command:
 
@@ -42,10 +51,44 @@ If desired, you may pull a specific release of DAR-T by using the following comm
 ```bash
 docker pull p20wcommunityofinnovation/dar-t:<release-tag>
 ```
-Then run:
+Then run without any environment variables set:
 
 ```bash
 docker run -p 8501:8501 dart_ui
+```
+
+Then run with environment variables set in unix:
+
+```bash
+docker run -p 8501:8501 -e PAGE_TITLE="DAR-T Streamlit App Custom Title" \
+-e HEADER_IMAGE="https://example.com/image.png" \
+-e HEADER_TEXT="Welcome to DAR-T Custom Text" \
+-e MIN_SUPPRESSION_THRESHOLD=100 \
+-e DISABLE_STREAMLIT_HAMBURGER=True \
+-e CUSTOM_TOP_NAVIGATION_HTML="<h1>Custom Header Docker</h1>" \
+--name dart_ui \
+p20wcommunityofinnovation/dar-t:latest
+```
+Then run with environment variables set in Windows powershell:
+
+```powerhsell
+docker run -p 8501:8501 `
+  -e PAGE_TITLE="DAR-T Streamlit App Custom Title" `
+  -e HEADER_IMAGE="https://example.com/image.png" `
+  -e HEADER_TEXT="Welcome to DAR-T Custom Text" `
+  -e MIN_SUPPRESSION_THRESHOLD=100 `
+  -e DISABLE_STREAMLIT_HAMBURGER=True `
+  -e CUSTOM_TOP_NAVIGATION_HTML="<h1>Custom Header Docker</h1>" `
+  --name dart_ui `
+  p20wcommunityofinnovation/dar-t:latest
+```
+
+Run Sample docker compose file(with environment variables set):
+```bash
+cd ./app
+docker compose -f sample-docker-compose.yml down
+docker compose -f sample-docker-compose.yml build
+docker compose -f sample-docker-compose.yml up
 ```
 You may also run the Docker image via the Docker Desktop UI. Ensure that port 8501 is specified as the mapped port on your host machine in the optional run settings. 
 ## Launching Locally Via Command Line

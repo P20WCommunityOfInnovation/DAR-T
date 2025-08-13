@@ -56,3 +56,4 @@ examples/CreatedLog.csv
 
 *.DS_Store
 *.log
+/dar_tool.egg-info
