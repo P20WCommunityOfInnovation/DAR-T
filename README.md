@@ -57,7 +57,7 @@ Then run without any environment variables set:
 docker run -p 8501:8501 dart_ui
 ```
 
-Then run with environment variables set:
+Then run with environment variables set in unix:
 
 ```bash
 docker run -p 8501:8501 -e PAGE_TITLE="DAR-T Streamlit App Custom Title" \
@@ -65,9 +65,22 @@ docker run -p 8501:8501 -e PAGE_TITLE="DAR-T Streamlit App Custom Title" \
 -e HEADER_TEXT="Welcome to DAR-T Custom Text" \
 -e MIN_SUPPRESSION_THRESHOLD=100 \
 -e DISABLE_STREAMLIT_HAMBURGER=True \
--e CUSTOM_HEADER_HTML="<h1>Custom Header Docker</h1>" \
+-e CUSTOM_TOP_NAVIGATION_HTML="<h1>Custom Header Docker</h1>" \
 --name dart_ui \
 p20wcommunityofinnovation/dar-t:latest
+```
+Then run with environment variables set in Windows powershell:
+
+```powerhsell
+docker run -p 8501:8501 `
+  -e PAGE_TITLE="DAR-T Streamlit App Custom Title" `
+  -e HEADER_IMAGE="https://example.com/image.png" `
+  -e HEADER_TEXT="Welcome to DAR-T Custom Text" `
+  -e MIN_SUPPRESSION_THRESHOLD=100 `
+  -e DISABLE_STREAMLIT_HAMBURGER=True `
+  -e CUSTOM_TOP_NAVIGATION_HTML="<h1>Custom Header Docker</h1>" `
+  --name dart_ui `
+  p20wcommunityofinnovation/dar-t:latest
 ```
 
 Run Sample docker compose file(with environment variables set):
