@@ -55,13 +55,13 @@ if uploadedFile:
     with st.sidebar:
         st.sidebar.title("Inputs for Redaction")
         st.header("Select your function inputs")
-        parent_org = st.selectbox("Parent Organization", options= [None] + list(df.columns))
+        parent_org = st.selectbox("Parent Organization (E.g., School District)", options= [None] + list(df.columns))
 
-        child_org = st.selectbox("Child Organization", options= [None] + list(df.columns))
+        child_org = st.selectbox("Child Organization (E.g., School)", options= [None] + list(df.columns))
 
-        sensitive_columns = st.multiselect("Sensitive Columns", options= df.columns)
+        sensitive_columns = st.multiselect("Subgroup Columns (E.g., Gender, IEP Status)", options= df.columns)
 
-        st.caption("At least one sensitive column must be specified.")
+        st.caption("At least one subgroup column must be specified.")
 
         frequency_columns = st.multiselect("Aggregate Count Column", options=df.columns)
 
@@ -98,7 +98,7 @@ if uploadedFile:
 
             **Child Organization**: A subgroup for your aggregates. This may be a category like "School". This is optional. 
 
-            **Sensitive Columns**: Columns that group individual records into an aggregate. This would be a category like "Gender" or "IEP Status". At least one column must be specified. 
+            **Subgroup Columns**: Columns that group individual records into an aggregate. This would be a category like "Gender" or "IEP Status". At least one column must be specified. 
 
             *While parent organization and child organization are optional, you may not have duplicate values across your grouping columns. E.g., You cannot have more than one record for "English Language Learner - Male".*  
               
