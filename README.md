@@ -35,11 +35,11 @@ As a prerequisite you must have [Docker installed](https://docs.docker.com/engin
     Customizations can be made to the Docker image by setting environment variables.
     The following environment variables can be set when running the Docker image, otherwise the default values will be used:
     PAGE_TITLE = This will set the title of the Streamlit page.
-    HEADER_IMAGE = This will set the header image of the Streamlit page. The image should be a valid URL or a local file path.
+    HEADER_IMAGE = This will set the header image of the Streamlit page. The image should be a valid http URL.
     HEADER_TEXT = This will set the header text of the Streamlit page.
     MIN_SUPPRESSION_THRESHOLD = This will set the minimum suppression threshold for redaction. The default value is 10
     DISABLE_STREAMLIT_HAMBURGER = This will disable the Streamlit hamburger menu in the top right corner of the page. The default value is False.
-    CUSTOM_HEADER_HTML = This will set a custom HTML header for the Streamlit page. The default value is None, which means no custom header will be used.
+    CUSTOM_TOP_NAVIGATION_HTML = This will set a custom HTML navigation headers for the Streamlit page. The default value is None, which means no custom header will be used.
 
 To run the Docker image, you must first pull it from Docker Hub using the following command:
 
