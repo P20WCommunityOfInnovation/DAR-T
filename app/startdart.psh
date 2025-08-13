@@ -1,0 +1,24 @@
+
+$env:HEADER_IMAGE = "http://drive.images/helo.png"
+$env:HEADER_TEXT = "starting from string"
+$env:MIN_SUPPRESSION_THRESHOLD = "25"
+$env:DISABLE_STREAMLIT_HAMBURGER = "true"
+$CUSTOM_TOP_NAVIGATION_HTML = @"
+<div>
+<a href="http://www.google.com" target="_blank">Go to google</a>
+<a href="http://www.bing.com" target="_blank">Go to bing</a>
+<a href="http://www.bing.com" target="_blank">Fill Survey</a>
+</div>
+"@
+$env:CUSTOM_TOP_NAVIGATION_HTML = $CUSTOM_TOP_NAVIGATION_HTML
+
+function Start-App {
+    Write-Host "current dir : $(Get-Location)"
+    Write-Host "current env HEADER_IMAGE:$env:HEADER_IMAGE"
+    Write-Host "current env HEADER_TEXT:$env:HEADER_TEXT"
+    Write-Host "current env MIN_SUPPRESSION_THRESHOLD:$env:MIN_SUPPRESSION_THRESHOLD"
+    Write-Host "current env DISABLE_STREAMLIT_HAMBURGER:$env:DISABLE_STREAMLIT_HAMBURGER"
+    streamlit run dart_app.py --server.headless true
+}
+
+Start-App

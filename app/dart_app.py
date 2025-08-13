@@ -1,5 +1,10 @@
 #without this first two lines not finding my module
 import sys
+
+from streamlit.components.v1 import components, html
+
+from dart_constants import AppDefaults, print_defaults
+
 sys.path.append('..')
 
 import streamlit as st
@@ -8,24 +13,27 @@ import pandas as pd
 
 from dar_tool.suppression_check import DataAnonymizer
 
+print(f"AppDefaults: {print_defaults()}")
 st.set_page_config(
     layout="wide",
-    page_title="DART User Interface",
+    page_title=AppDefaults.PAGE_TITLE,
     page_icon="images/favicon.ico",
     menu_items={
-        "Report a bug": "https://github.com/P20WCommunityOfInnovation/DAR-T/issues",
-        "About": "This tool is developed by the P20W+ Community of Innovation to support users with applying redaction to aggregate data in order to avoid disclosure of sensitive information. More information can be found here: https://github.com/P20WCommunityOfInnovation/DAR-T"
+        "Report a bug": None,
+        "About": None
     }
 )
 
 # Add columns for centering image
-left, middle, right = st.columns(3)
+left,middle, right = st.columns(3)
+
+
 
 with middle:
-    st.image(image="images/DAR-T_main_text.png", width = 300)
+    st.image(image=AppDefaults.HEADER_IMAGE, width = 300)
 
-st.header("This tool is designed to support users with redacting sensitive records in aggregate files. By default this tool will redact records where the count is 10 or less and all additional records needed for complimentary suppression.")
 
+st.header(AppDefaults.HEADER_TEXT)
 st.subheader("Upload your .csv or .xlsx file with aggregates to get started:")
 
 #Creating columns so file upload widget does not span entire page. 
@@ -59,7 +67,7 @@ if uploadedFile:
 
         redact_column = st.selectbox("User Specified Redaction Column", options= [None] + list(df.columns))
 
-        minimum_threshold = st.number_input('Specify the minimum threshold for suppression', value= 10, min_value= 0)
+        minimum_threshold = st.number_input('Specify the minimum threshold for suppression', value= AppDefaults.MIN_SUPPRESSION_THRESHOLD, min_value= 0)
 
         redact_zero = st.checkbox('Should zeroes be redacted?')
 
@@ -149,11 +157,101 @@ if uploadedFile:
         st.subheader("The file can be downloaded via the download icon in the top right of the table.")
         st.write(df_merged)
 
-       
+
+# This will hold script/html to be rendered in the app.
+custom_js_funcs = [];
+## declare a window.parent.custom_function_arr in javascript
+
+html("""
+<script>window.parent.custom_function_arr = [];</script>
+""")
+
+# If running from public, add a  javascript
+# function to remove the header element form the page
+if AppDefaults.DISABLE_STREAMLIT_HAMBURGER:
+    custom_js_funcs.append("""
+        const removeHeader = () => {
+            console.log("Removing header element");
+            const headers = window.parent.document.getElementsByTagName('header');
+            if(headers && headers.length > 0) {
+                while (headers[0].firstChild) {
+                    headers[0].removeChild(headers[0].firstChild);
+                }
+            }           
+        }
+        window.parent.custom_function_arr.push(removeHeader);
+    """)
+
+# if any customer header html environment is present use that value to be appended in the
+# the header of the page , the javascript function will append the html to the header element
+
+if AppDefaults.CUSTOM_TOP_NAVIGATION_HTML is not None and AppDefaults.CUSTOM_TOP_NAVIGATION_HTML != "":
+    print("Running CUSTOM_HEADER_HTML adding script")
+    custom_style = """
+        <style>
+        .custom-header {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.25rem;
+            display: flex;
+            flex-direction: row;
+            -webkit-box-align: center;
+            align-items: center;
+        }
+        </style>
+    """
+    # Add a javascript function to add custom header HTML
+    # the double braces {{ or }} is for string interpolation in f-strings
+    custom_js_funcs.append(
+        f"""
+        //addCustomHtml start
+        const addCustomHtml = () => {{
+            console.log("Adding custom header HTML");
+            const custom = document.createElement('div');
+            
+            
+            custom.innerHTML = `{custom_style}\n{AppDefaults.CUSTOM_TOP_NAVIGATION_HTML}`;
+            // custom innerHTML end
+            
+            custom.classList.add('custom-header');
+            const headers = window.parent.document.getElementsByTagName('header');
+            if(headers && headers.length > 0) {{
+                console.log("Found custom html, appending custom HTML");
+                headers[0].appendChild(custom);
+            }}
+            
+        }}
+        window.parent.custom_function_arr.push(addCustomHtml);
+        // addCustomHtml end
+        """)
+
+if custom_js_funcs:
+    # Join all custom js functions into a single string
+    custom_js = "\n".join(custom_js_funcs)
+    # Write the custom js to the page    # This script will execute the custom functions defined in the custom_function_arr
+    html(f"""
+    <script>
+        // custom_js_funcs print start
+        {custom_js}
+        // custom_js_funcs print end
+        
+        window.parent.custom_function_arr.forEach(func => {{
+            if (typeof func === 'function') {{
+                try {{
+                    console.log("Executing custom function:", func);
+                    func();
+                }} catch (e) {{
+                    console.error("Error executing custom function:", e);
+                }}
+            }} else {{
+                console.warn("Custom function is not a valid function:", func);
+            }}
+        }});
+    </script>
+    """
+    )
 
 
-
-    
     
 
 

@@ -1,0 +1,15 @@
+version: '3'
+services:
+  dart_ui:
+    image: p20wcommunityofinnovation/dar-t:latest
+    ports:
+      - 8501:8501
+    environment:
+      - PAGE_TITLE=Community of Innovation
+      - HEADER_IMAGE=http://127.0.0.1:5500/testimage.png
+      - HEADER_TEXT=This is application header text
+      - MIN_SUPPRESSION_THRESHOLD=45
+      - DISABLE_STREAMLIT_HAMBURGER=true
+      - CUSTOM_HEADER_HTML=<div><h1>Custom Header from docker compose</h1></div>
+    build:
+        context: .
